@@ -1,10 +1,9 @@
+import type { PluginAPI } from "@jammwork/api";
 import { useCallback, useEffect, useMemo } from "react";
 import { useCanvasStore } from "@/store";
 
 interface UseViewportProps {
-	pluginApi?: {
-		getRegisteredTools: () => Map<string, any>;
-	};
+	pluginApi?: PluginAPI;
 }
 
 export const useViewport = (props?: UseViewportProps) => {
