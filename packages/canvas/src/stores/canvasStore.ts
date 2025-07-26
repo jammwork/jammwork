@@ -359,17 +359,31 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 
 	updateElementDrag: (position) =>
 		set((state) => {
-			const { draggedElement } = state.selectionState;
+			const { draggedElement, selectedElements } = state.selectionState;
 			if (!draggedElement) return state;
 
-			const element = state.elements.get(draggedElement.id);
-			if (!element) return state;
+			const draggedElementData = state.elements.get(draggedElement.id);
+			if (!draggedElementData) return state;
 
+			// Calculate the delta movement
 			const newX = position.x - draggedElement.offset.x;
 			const newY = position.y - draggedElement.offset.y;
+			const deltaX = newX - draggedElementData.x;
+			const deltaY = newY - draggedElementData.y;
 
 			const newElements = new Map(state.elements);
-			newElements.set(draggedElement.id, { ...element, x: newX, y: newY });
+
+			// Move all selected elements by the same delta
+			for (const elementId of selectedElements) {
+				const element = state.elements.get(elementId);
+				if (element) {
+					newElements.set(elementId, {
+						...element,
+						x: element.x + deltaX,
+						y: element.y + deltaY,
+					});
+				}
+			}
 
 			return { elements: newElements };
 		}),
