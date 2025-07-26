@@ -1,12 +1,21 @@
 import { InfiniteCanvas } from "@jammwork/canvas";
+import { useParams } from "react-router-dom";
 
 function EditorPage() {
+	const { roomId } = useParams();
+
+	const name = localStorage.getItem('name');
+
+	if (!roomId || !name) {
+		return <div>Room not found</div>;
+	}
+
 	return (
 		<div className="w-screen h-screen">
 			<InfiniteCanvas
 				backendUrl="ws://localhost:1234"
-				userId={Math.random().toString(36).substring(2, 15)}
-				roomId="my-canvas-room"
+				userId={name}
+				roomId={roomId}
 				accentColor="#8b5cf6"
 			/>
 		</div>
