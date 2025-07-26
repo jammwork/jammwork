@@ -1,5 +1,5 @@
 export * from "./constants";
-export * from "./lib/EventBus";
+export * from "./EventBus";
 export type {
 	CanvasState,
 	ContextMenuItem,
@@ -13,5 +13,5 @@ export type {
 	PluginManagerConfig,
 	RenderContext,
 	ToolDefinition,
-} from "./lib/Plugin";
-export * from "./lib/PluginAPIBase";
+} from "./Plugin";
+export * from "./PluginAPIBase";
