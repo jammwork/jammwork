@@ -138,7 +138,11 @@ export type PluginEvent =
 	| "canvas:pan"
 	| "canvas:zoom"
 	| "tool:activated"
-	| "tool:deactivated";
+	| "tool:deactivated"
+	| "plugin:loaded"
+	| "plugin:unloaded"
+	| "plugin:activated"
+	| "plugin:deactivated";
 
 export interface PluginEventData extends Record<string | symbol, unknown> {
 	"element:created": { element: Element };

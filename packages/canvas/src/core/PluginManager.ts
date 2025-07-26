@@ -1,10 +1,10 @@
-import {
+import { EventBus } from "./EventBus";
+import type {
+	Disposable,
 	Plugin,
 	PluginAPI,
 	PluginManagerConfig,
-	Disposable,
 } from "../types/plugin";
-import { EventBus } from "./EventBus";
 
 export class PluginManager {
 	private plugins = new Map<string, Plugin>();
