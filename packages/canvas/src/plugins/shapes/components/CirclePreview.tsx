@@ -11,7 +11,12 @@ export const CirclePreview: React.FC<CirclePreviewProps> = ({
 	const { isCreating, shapeType, startPosition, currentPosition } =
 		useShapeCreationStore();
 
-	if (!isCreating || shapeType !== "circle" || !startPosition || !currentPosition) {
+	if (
+		!isCreating ||
+		shapeType !== "circle" ||
+		!startPosition ||
+		!currentPosition
+	) {
 		return null;
 	}
 

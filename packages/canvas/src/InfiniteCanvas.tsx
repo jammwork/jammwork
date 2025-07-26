@@ -84,17 +84,17 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 	// Combine plugin layers with user cursors layer
 	const allLayerComponents = useMemo(() => {
 		const layers = [...layerComponents];
-		
+
 		// Add UserCursorsLayer if we have Yjs sync enabled
 		if (yjsSync.awareness && userId) {
 			layers.push(() => (
-				<UserCursorsLayer 
-					awareness={yjsSync.awareness} 
-					currentUserId={userId} 
+				<UserCursorsLayer
+					awareness={yjsSync.awareness}
+					currentUserId={userId}
 				/>
 			));
 		}
-		
+
 		return layers;
 	}, [layerComponents, yjsSync.awareness, userId]);
 

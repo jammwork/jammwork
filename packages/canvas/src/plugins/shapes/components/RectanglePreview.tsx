@@ -11,7 +11,12 @@ export const RectanglePreview: React.FC<RectanglePreviewProps> = ({
 	const { isCreating, shapeType, startPosition, currentPosition } =
 		useShapeCreationStore();
 
-	if (!isCreating || shapeType !== "rectangle" || !startPosition || !currentPosition) {
+	if (
+		!isCreating ||
+		shapeType !== "rectangle" ||
+		!startPosition ||
+		!currentPosition
+	) {
 		return null;
 	}
 

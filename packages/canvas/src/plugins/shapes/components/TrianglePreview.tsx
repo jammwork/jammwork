@@ -11,7 +11,12 @@ export const TrianglePreview: React.FC<TrianglePreviewProps> = ({
 	const { isCreating, shapeType, startPosition, currentPosition } =
 		useShapeCreationStore();
 
-	if (!isCreating || shapeType !== "triangle" || !startPosition || !currentPosition) {
+	if (
+		!isCreating ||
+		shapeType !== "triangle" ||
+		!startPosition ||
+		!currentPosition
+	) {
 		return null;
 	}
 

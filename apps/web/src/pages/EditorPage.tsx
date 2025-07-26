@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 function EditorPage() {
 	const { roomId } = useParams();
 
-	const name = localStorage.getItem('name');
+	const name = localStorage.getItem("name");
 
 	if (!roomId || !name) {
 		return <div>Room not found</div>;

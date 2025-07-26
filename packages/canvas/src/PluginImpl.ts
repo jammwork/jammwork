@@ -195,11 +195,11 @@ export class PluginAPIImpl implements PluginAPI {
 	// Internal method for adding elements with existing IDs (used by sync)
 	addElementWithId(element: Element): void {
 		const state = useCanvasStore.getState();
-		
+
 		// Directly add to the store without generating new ID
 		const newElements = new Map(state.elements);
 		newElements.set(element.id, element);
-		
+
 		// Update the store
 		useCanvasStore.setState((currentState) => ({
 			...currentState,
@@ -246,7 +246,10 @@ export class PluginAPIImpl implements PluginAPI {
 		const state = useCanvasStore.getState();
 
 		if (!state.elements.has(id)) {
-			console.warn(`Element with id "${id}" not found in store. Available elements:`, Array.from(state.elements.keys()));
+			console.warn(
+				`Element with id "${id}" not found in store. Available elements:`,
+				Array.from(state.elements.keys()),
+			);
 			return; // Gracefully handle missing elements instead of throwing
 		}
 

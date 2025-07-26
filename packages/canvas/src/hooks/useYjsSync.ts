@@ -75,10 +75,10 @@ export const useYjsSync = ({
 		};
 
 		const handleVisibilityChange = () => {
-			if (document.visibilityState === 'hidden') {
+			if (document.visibilityState === "hidden") {
 				// Clear awareness when tab becomes hidden (helps with tab switches)
 				provider.awareness.setLocalState(null);
-			} else if (document.visibilityState === 'visible') {
+			} else if (document.visibilityState === "visible") {
 				// Restore awareness when tab becomes visible again
 				provider.awareness.setLocalStateField("user", {
 					id: userId,
@@ -90,19 +90,19 @@ export const useYjsSync = ({
 		};
 
 		// Add event listeners for cleanup
-		window.addEventListener('beforeunload', handleBeforeUnload);
-		window.addEventListener('unload', handleBeforeUnload);
-		document.addEventListener('visibilitychange', handleVisibilityChange);
+		window.addEventListener("beforeunload", handleBeforeUnload);
+		window.addEventListener("unload", handleBeforeUnload);
+		document.addEventListener("visibilitychange", handleVisibilityChange);
 
 		mainDocRef.current = doc;
 		mainProviderRef.current = provider;
 
 		return () => {
 			// Remove event listeners
-			window.removeEventListener('beforeunload', handleBeforeUnload);
-			window.removeEventListener('unload', handleBeforeUnload);
-			document.removeEventListener('visibilitychange', handleVisibilityChange);
-			
+			window.removeEventListener("beforeunload", handleBeforeUnload);
+			window.removeEventListener("unload", handleBeforeUnload);
+			document.removeEventListener("visibilitychange", handleVisibilityChange);
+
 			// Clear awareness state before destroying
 			provider.awareness.setLocalState(null);
 			provider.destroy();
@@ -290,7 +290,8 @@ export const useYjsSync = ({
 
 	const updateCursorPosition = useCallback((x: number, y: number) => {
 		if (mainProviderRef.current?.awareness) {
-			const currentUser = mainProviderRef.current.awareness.getLocalState()?.user;
+			const currentUser =
+				mainProviderRef.current.awareness.getLocalState()?.user;
 			if (currentUser) {
 				mainProviderRef.current.awareness.setLocalStateField("user", {
 					...currentUser,

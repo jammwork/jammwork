@@ -28,7 +28,7 @@ export const UserCursors: React.FC<UserCursorsProps> = ({
 		const updateUsers = () => {
 			const users: UserCursor[] = [];
 			const now = Date.now();
-			
+
 			awareness.getStates().forEach((state, clientId) => {
 				if (state.user && state.user.id !== currentUserId) {
 					users.push({
@@ -52,7 +52,9 @@ export const UserCursors: React.FC<UserCursorsProps> = ({
 		// Set up cleanup interval to remove stale users
 		cleanupIntervalRef.current = setInterval(() => {
 			const now = Date.now();
-			setOtherUsers(prev => prev.filter(user => now - user.lastSeen < 10000)); // Remove users inactive for 10 seconds
+			setOtherUsers((prev) =>
+				prev.filter((user) => now - user.lastSeen < 10000),
+			); // Remove users inactive for 10 seconds
 		}, 5000); // Check every 5 seconds
 
 		return () => {
@@ -86,7 +88,7 @@ export const UserCursors: React.FC<UserCursorsProps> = ({
 							/>
 						</div>
 					</foreignObject>
-					
+
 					{/* User name label */}
 					<foreignObject
 						x={user.cursor.x + 18}

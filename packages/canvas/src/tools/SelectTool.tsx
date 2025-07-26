@@ -158,7 +158,11 @@ export const createSelectTool = (api: PluginAPI): ToolDefinition => {
 				for (const elementId of selectionState.selectedElements) {
 					const element = elements.get(elementId);
 					if (element) {
-						api.emit("element:updated", { id: elementId, element, changes: { x: element.x, y: element.y } });
+						api.emit("element:updated", {
+							id: elementId,
+							element,
+							changes: { x: element.x, y: element.y },
+						});
 					}
 				}
 				endElementDrag();
@@ -168,10 +172,15 @@ export const createSelectTool = (api: PluginAPI): ToolDefinition => {
 				// Emit element:updated event for the resized element
 				const element = elements.get(selectionState.resizeHandle.elementId);
 				if (element) {
-					api.emit("element:updated", { 
-						id: element.id, 
-						element, 
-						changes: { x: element.x, y: element.y, width: element.width, height: element.height } 
+					api.emit("element:updated", {
+						id: element.id,
+						element,
+						changes: {
+							x: element.x,
+							y: element.y,
+							width: element.width,
+							height: element.height,
+						},
 					});
 				}
 				endResize();

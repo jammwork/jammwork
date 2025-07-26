@@ -1,18 +1,18 @@
-import { Square } from "lucide-react";
 import type { Plugin, PluginAPI } from "@jammwork/api";
-import { createRectangleTool } from "./tools/rectangleTool";
-import { createCircleTool } from "./tools/circleTool";
-import { createTriangleTool } from "./tools/triangleTool";
-import { RectangleRenderer } from "./renderers/RectangleRenderer";
-import { CircleRenderer } from "./renderers/CircleRenderer";
-import { TriangleRenderer } from "./renderers/TriangleRenderer";
-import { createRectangleLayer } from "./layers/RectangleLayer";
-import { createCircleLayer } from "./layers/CircleLayer";
-import { createTriangleLayer } from "./layers/TriangleLayer";
-import { RectanglePreview } from "./components/RectanglePreview";
+import { Square } from "lucide-react";
 import { CirclePreview } from "./components/CirclePreview";
+import { RectanglePreview } from "./components/RectanglePreview";
 import { TrianglePreview } from "./components/TrianglePreview";
+import { createCircleLayer } from "./layers/CircleLayer";
+import { createRectangleLayer } from "./layers/RectangleLayer";
+import { createTriangleLayer } from "./layers/TriangleLayer";
+import { CircleRenderer } from "./renderers/CircleRenderer";
+import { RectangleRenderer } from "./renderers/RectangleRenderer";
+import { TriangleRenderer } from "./renderers/TriangleRenderer";
 import { useShapeCreationStore } from "./shapesStore";
+import { createCircleTool } from "./tools/circleTool";
+import { createRectangleTool } from "./tools/rectangleTool";
+import { createTriangleTool } from "./tools/triangleTool";
 
 export const ShapesPlugin: Plugin = {
 	id: "shapes-plugin",
