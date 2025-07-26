@@ -533,7 +533,7 @@ For complex plugins with multiple tools or shapes, consider using a modular stru
 ```typescript
 // src/plugins/shapes/tools/rectangleTool.ts
 import { Square } from "lucide-react";
-import type { PluginAPI, ToolDefinition } from "../../../plugin";
+import type { PluginAPI, ToolDefinition } from "@jammwork/api";
 
 export const createRectangleTool = (api: PluginAPI): ToolDefinition => ({
   id: "rectangle",
@@ -602,7 +602,7 @@ export const ShapesPlugin: Plugin = {
 ```typescript
 // src/plugins/shapes/renderers/RectangleRenderer.tsx
 import type React from "react";
-import type { Element } from "../../../plugin";
+import type { Element } from "@jammwork/api";
 
 export const RectangleRenderer: React.FC<{ element: Element }> = ({ element }) => {
   const { x, y, width, height, properties } = element;
@@ -625,7 +625,7 @@ export const RectangleRenderer: React.FC<{ element: Element }> = ({ element }) =
 ```typescript
 // src/plugins/shapes/layers/RectangleLayer.tsx
 import type React from "react";
-import type { Element, PluginAPI } from "../../../plugin";
+import type { Element, PluginAPI } from "@jammwork/api";
 import { RectangleRenderer } from "../renderers/RectangleRenderer";
 
 export const createRectangleLayer = (api: PluginAPI): React.FC => () => {
