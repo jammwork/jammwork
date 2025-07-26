@@ -33,7 +33,7 @@ export const useDrawingStore = create<DrawingStore>((set, get) => ({
 	},
 
 	endDrawing: () => {
-		const { isDrawing, currentPath, paths } = get();
+		const { isDrawing, currentPath } = get();
 		if (
 			!isDrawing ||
 			!currentPath ||
@@ -46,17 +46,12 @@ export const useDrawingStore = create<DrawingStore>((set, get) => ({
 			return;
 		}
 
-		const newPath: DrawPath = {
-			id: `path_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-			points: currentPath,
-			color: DRAWING_CONSTANTS.DEFAULT_COLOR,
-			strokeWidth: DRAWING_CONSTANTS.DEFAULT_STROKE_WIDTH,
-		};
-
+		// Don't store the path in drawing store anymore since it will be stored as a canvas element
+		// Just clear the current drawing state
 		set({
 			isDrawing: false,
 			currentPath: null,
-			paths: [...paths, newPath],
+			// Keep existing paths as they are (for any legacy paths)
 		});
 	},
 
