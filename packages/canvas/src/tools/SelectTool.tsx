@@ -143,9 +143,9 @@ export const createSelectTool = (api: PluginAPI): ToolDefinition => {
 						api.clearSelection();
 					}
 
-					// Select all elements in bounds
+					// Select all elements in bounds using multi-select to accumulate them
 					for (const element of elementsInBounds) {
-						api.selectElement(element.id);
+						state.selectElement(element.id, true);
 					}
 				}
 
@@ -203,8 +203,12 @@ export const createSelectTool = (api: PluginAPI): ToolDefinition => {
 						// Select all elements
 						event.preventDefault();
 						api.clearSelection();
-						for (const elementId of state.elements.keys()) {
-							api.selectElement(elementId);
+						// Get all element IDs and select them directly via store with multi=true
+						const elementIds = Array.from(state.elements.keys());
+						for (let i = 0; i < elementIds.length; i++) {
+							const elementId = elementIds[i];
+							// Call store method directly with multi=true to accumulate selections
+							state.selectElement(elementId, true);
 						}
 					}
 					break;
