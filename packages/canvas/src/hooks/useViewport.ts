@@ -33,7 +33,15 @@ export const useViewport = () => {
 	};
 
 	const getCursor = () => {
-		return dragState.isDragging ? "grabbing" : "grab";
+		const { toolState } = useCanvasStore.getState();
+
+		if (dragState.isDragging) return "grabbing";
+
+		if (toolState.activeTool === "select") return "default";
+		if (toolState.activeTool === "pan") return "grab";
+		if (toolState.activeTool === "draw") return "crosshair";
+
+		return "default";
 	};
 
 	return {

@@ -8,12 +8,12 @@
 		}
 	},
 	"references": [
-    {
-      "path": "../ui"
-    },
-    {
-      "path": "./tsconfig.lib.json"
-    }
-  ],
+		{
+			"path": "../ui"
+		},
+		{
+			"path": "./tsconfig.lib.json"
+		}
+	],
 	"extends": "../../tsconfig.base.json"
 }

@@ -1,10 +1,22 @@
-import { useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback, useEffect, useMemo } from "react";
 import { useViewport } from "./hooks/useViewport";
 import { PositionDisplay } from "./components/PositionDisplay";
 import { CANVAS_CONSTANTS } from "@/constants";
 import Toolbar from "./components/Toolbar";
+import { DrawingLayer } from "./components/DrawingLayer";
+import { PluginManager } from "./core/PluginManager";
+import { PluginAPIImpl } from "./core/PluginAPI";
+import { EventBus } from "./core/EventBus";
+import { useCanvasStore } from "./stores/canvasStore";
+import type { Plugin } from "./types/plugin";
 
-export const InfiniteCanvas: React.FC = () => {
+interface InfiniteCanvasProps {
+	plugins?: Plugin[];
+}
+
+export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
+	plugins = [],
+}) => {
 	const svgRef = useRef<SVGSVGElement>(null);
 	const {
 		dimensions,
@@ -16,26 +28,115 @@ export const InfiniteCanvas: React.FC = () => {
 		zoomAt,
 	} = useViewport();
 
+	// Initialize plugin system
+	const pluginSystem = useMemo(() => {
+		const eventBus = new EventBus();
+		const api = new PluginAPIImpl(eventBus);
+		const manager = new PluginManager(api);
+		return { eventBus, api, manager };
+	}, []);
+
+	// Load plugins when they change
+	useEffect(() => {
+		const loadPlugins = async () => {
+			// Unload all existing plugins first
+			await pluginSystem.manager.unloadAllPlugins();
+
+			// Load new plugins
+			if (plugins.length > 0) {
+				await pluginSystem.manager.loadPlugins(plugins);
+			}
+		};
+
+		loadPlugins().catch(console.error);
+	}, [plugins, pluginSystem.manager]);
+
+	// Keyboard shortcuts for tools
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.target !== document.body) return; // Only handle when not in input
+
+			const { setActiveTool } = useCanvasStore.getState();
+
+			switch (e.key.toLowerCase()) {
+				case "v":
+					setActiveTool("select");
+					e.preventDefault();
+					break;
+				case "h":
+					setActiveTool("pan");
+					e.preventDefault();
+					break;
+				case "p":
+					setActiveTool("draw");
+					e.preventDefault();
+					break;
+			}
+		};
+
+		document.addEventListener("keydown", handleKeyDown);
+		return () => document.removeEventListener("keydown", handleKeyDown);
+	}, []);
+
 	const handleMouseDown = useCallback(
 		(e: React.MouseEvent) => {
-			startDrag({ x: e.clientX, y: e.clientY });
+			const { toolState, startDrawing } = useCanvasStore.getState();
+			const rect = svgRef.current?.getBoundingClientRect();
+			if (!rect) return;
+
+			const x = e.clientX - rect.left;
+			const y = e.clientY - rect.top;
+
+			if (toolState.activeTool === "pan") {
+				startDrag({ x: e.clientX, y: e.clientY });
+			} else if (toolState.activeTool === "select") {
+				// TODO: Handle element selection
+				console.log("Select tool - implement element selection logic");
+			} else if (toolState.activeTool === "draw") {
+				startDrawing({ x, y });
+			}
 		},
 		[startDrag],
 	);
 
 	const handleMouseMove = useCallback(
 		(e: React.MouseEvent) => {
-			updateDrag({ x: e.clientX, y: e.clientY });
+			const { toolState, addDrawPoint } = useCanvasStore.getState();
+			const rect = svgRef.current?.getBoundingClientRect();
+			if (!rect) return;
+
+			const x = e.clientX - rect.left;
+			const y = e.clientY - rect.top;
+
+			if (toolState.activeTool === "pan") {
+				updateDrag({ x: e.clientX, y: e.clientY });
+			} else if (toolState.activeTool === "select") {
+				// TODO: Handle element hover/selection feedback
+			} else if (toolState.activeTool === "draw") {
+				addDrawPoint({ x, y });
+			}
 		},
 		[updateDrag],
 	);
 
 	const handleMouseUp = useCallback(() => {
-		endDrag();
+		const { toolState, endDrawing } = useCanvasStore.getState();
+
+		if (toolState.activeTool === "draw") {
+			endDrawing();
+		} else {
+			endDrag();
+		}
 	}, [endDrag]);
 
 	const handleMouseLeave = useCallback(() => {
-		endDrag();
+		const { toolState, endDrawing } = useCanvasStore.getState();
+
+		if (toolState.activeTool === "draw") {
+			endDrawing();
+		} else {
+			endDrag();
+		}
 	}, [endDrag]);
 
 	const handleWheel = useCallback(
@@ -199,6 +300,7 @@ export const InfiniteCanvas: React.FC = () => {
 					height={CANVAS_CONSTANTS.CANVAS_SIZE}
 					fill="url(#dots)"
 				/>
+				<DrawingLayer />
 			</svg>
 
 			<PositionDisplay />
