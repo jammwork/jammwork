@@ -1,7 +1,9 @@
+import { InfiniteCanvas } from "@jammwork/canvas";
+
 function EditorPage() {
 	return (
-		<div>
-			<h1>EditorPage</h1>
+		<div className="w-screen h-screen">
+			<InfiniteCanvas />
 		</div>
 	);
 }

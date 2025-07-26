@@ -16,6 +16,7 @@
 	},
 	"dependencies": {
 		"y-websocket": "^3.0.0",
-		"yjs": "^13.6.27"
+		"yjs": "^13.6.27",
+		"zustand": "^5.0.1"
 	}
 }

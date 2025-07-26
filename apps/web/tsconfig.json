@@ -9,6 +9,9 @@
 	},
 	"references": [
 		{
+			"path": "../../packages/canvas"
+		},
+		{
 			"path": "./tsconfig.app.json"
 		}
 	],
