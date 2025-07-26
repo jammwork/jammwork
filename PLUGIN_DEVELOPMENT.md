@@ -304,6 +304,41 @@ api.clearSelection(): void
 api.registerElementType(type: string, renderer: ElementRenderer): Disposable
 ```
 
+#### Real-time Collaboration (Yjs Integration)
+```typescript
+api.getYjsDocumentManager?(): YjsDocumentManager | undefined
+```
+
+The canvas supports real-time collaboration through Yjs synchronization. When enabled, plugins can access the Yjs document manager to create their own synchronized documents:
+
+```typescript
+// Check if Yjs is available
+const yjsManager = api.getYjsDocumentManager?.();
+if (yjsManager) {
+  // Create or get a document for your plugin
+  const pluginDoc = yjsManager.getDocument("my-plugin-data");
+  
+  // Use Yjs shared types
+  const sharedArray = pluginDoc.getArray("items");
+  const sharedMap = pluginDoc.getMap("settings");
+  
+  // Listen to changes
+  sharedArray.observe(() => {
+    console.log("Plugin data synchronized");
+  });
+}
+```
+
+**YjsDocumentManager Interface:**
+```typescript
+interface YjsDocumentManager {
+  getDocument(documentId: string): Y.Doc;
+  createDocument(documentId: string): Y.Doc;
+  deleteDocument(documentId: string): void;
+  getProvider(documentId: string): unknown; // WebSocket provider
+}
+```
+
 #### Theme and Styling
 ```typescript
 api.getAccentColor(): string
@@ -330,16 +365,80 @@ api.emit<T extends PluginEvent>(event: T, data: PluginEventData[T]): void
 
 ### Available Events
 
-- `element:created` - Element was created
-- `element:updated` - Element was modified  
-- `element:deleted` - Element was removed
+- `element:created` - Element was created (syncs to all users in real-time)
+- `element:updated` - Element was modified (syncs position, size, properties)
+- `element:deleted` - Element was removed (syncs deletion to all users)
 - `element:selected` - Element was selected
 - `element:deselected` - Element was deselected
-- `selection:changed` - Selection state changed
+- `selection:changed` - Selection state changed (syncs selection to all users)
 - `canvas:pan` - Canvas was panned
 - `canvas:zoom` - Canvas was zoomed
 - `tool:activated` - Tool was activated
 - `tool:deactivated` - Tool was deactivated
+
+**Real-time Synchronization:**
+All element events (`element:created`, `element:updated`, `element:deleted`) are automatically synchronized across all connected users when Yjs is enabled. This means any element manipulation in your plugin will be visible to all users in real-time.
+
+## Real-time Collaboration Features
+
+### Automatic Element Synchronization
+
+When real-time collaboration is enabled, the canvas automatically synchronizes:
+
+1. **Element Creation**: Elements created by any user appear on all connected canvases
+2. **Element Movement**: Dragging, resizing, and position changes sync in real-time
+3. **Element Deletion**: Deleted elements are removed from all connected canvases
+4. **Selection State**: User selections are visible to all participants
+5. **Cross-user Interaction**: Any user can select, move, and modify any element
+
+### Plugin Integration with Real-time Features
+
+Your plugins automatically benefit from real-time collaboration:
+
+```typescript
+// This creates an element that will appear on all connected canvases
+const elementId = api.createElement({
+  type: "my-custom-element",
+  x: 100,
+  y: 100,
+  width: 50,
+  height: 50,
+  properties: { color: "blue" },
+});
+
+// This update will sync to all users
+api.updateElement(elementId, { x: 200 });
+
+// This deletion will sync to all users
+api.deleteElement(elementId);
+```
+
+### Collaborative Plugin Data
+
+For plugin-specific data that needs to be synchronized:
+
+```typescript
+// In your plugin activation
+const yjsManager = api.getYjsDocumentManager?.();
+if (yjsManager) {
+  const pluginDoc = yjsManager.getDocument("text-annotations");
+  const annotations = pluginDoc.getArray("items");
+  
+  // Add collaborative annotation
+  annotations.push([{
+    id: "annotation-1",
+    text: "This is a shared comment",
+    position: { x: 100, y: 100 },
+    author: "user-123"
+  }]);
+  
+  // Listen for changes from other users
+  annotations.observe(() => {
+    // Update your plugin UI when other users add annotations
+    updateAnnotationLayer();
+  });
+}
+```
 
 ## Best Practices
 
@@ -358,7 +457,28 @@ api.emit<T extends PluginEvent>(event: T, data: PluginEventData[T]): void
 - Don't mutate canvas state directly
 - Use the PluginAPI for state changes
 
-### 4. Error Handling
+### 4. Real-time Collaboration
+- Always use `api.createElement()`, `api.updateElement()`, and `api.deleteElement()` for element operations
+- Emit `element:updated` events when operations complete to ensure synchronization:
+  ```typescript
+  // After finishing a drag operation
+  api.emit("element:updated", { 
+    id: elementId, 
+    element: updatedElement, 
+    changes: { x: newX, y: newY } 
+  });
+  ```
+- Check for Yjs availability before using collaborative features:
+  ```typescript
+  const yjsManager = api.getYjsDocumentManager?.();
+  if (yjsManager) {
+    // Use collaborative features
+  }
+  ```
+- Don't rely on element ownership - any user can modify any element
+- Handle graceful degradation when real-time features are unavailable
+
+### 5. Error Handling
 ```typescript
 activate: (api) => {
   try {
@@ -371,7 +491,7 @@ activate: (api) => {
 }
 ```
 
-### 5. Keyboard Shortcuts
+### 6. Keyboard Shortcuts
 ```typescript
 onKeyDown: (event) => {
   // Check for conflicts with existing shortcuts
@@ -651,5 +771,43 @@ export const createRectangleLayer = (api: PluginAPI): React.FC => () => {
 3. **Testing**: Individual components can be tested in isolation
 4. **Collaboration**: Multiple developers can work on different parts
 5. **Code Organization**: Logical separation of concerns
+
+## Troubleshooting
+
+### Real-time Collaboration Issues
+
+**Elements not syncing between users:**
+- Ensure you're using PluginAPI methods (`api.createElement()`, `api.updateElement()`, `api.deleteElement()`)
+- Check that `backendUrl`, `userId`, and `roomId` props are provided to `InfiniteCanvas`
+- Verify WebSocket server is running and accessible
+
+**Cannot select elements created by other users:**
+- This should work automatically - all elements are selectable regardless of creator
+- If issues persist, check browser console for errors
+
+**Selection changes not syncing:**
+- Ensure you're using `api.selectElement()` and `api.clearSelection()` instead of direct store access
+- The SelectTool automatically handles this for standard interactions
+
+### Plugin Development Issues
+
+**Tool not appearing in toolbar:**
+- Check that `api.registerTool()` is called during plugin activation
+- Verify tool has required properties: `id`, `name`, `icon`
+
+**Element operations not working:**
+- Always use PluginAPI methods instead of direct store manipulation
+- Emit appropriate events after operations complete
+
+**Events not firing:**
+- Check event listener registration: `api.on("event:name", handler)`
+- Ensure event names match exactly (case-sensitive)
+
+### Performance Issues
+
+**Slow rendering with many elements:**
+- Use `React.memo` for layer components
+- Implement virtualization for large element sets
+- Avoid unnecessary re-renders by optimizing dependencies
 
 This guide should help you create powerful and well-integrated plugins for the Infinite Canvas system!
