@@ -1,5 +1,5 @@
 import mitt, { type Emitter } from "mitt";
-import type { Disposable, PluginEvent, PluginEventData } from "../types/plugin";
+import type { Disposable, PluginEvent, PluginEventData } from "../plugin";
 
 export class EventBus {
 	private emitter: Emitter<PluginEventData>;

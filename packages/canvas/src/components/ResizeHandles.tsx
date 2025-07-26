@@ -1,7 +1,5 @@
-import React from "react";
-import { useCanvasStore } from "../stores/canvasStore";
-import { getResizeHandles } from "../utils/hitTesting";
-import type { Element } from "../types/plugin";
+import { getResizeHandles } from "../hitTesting";
+import type { Element } from "../plugin";
 
 interface ResizeHandlesProps {
 	element: Element;

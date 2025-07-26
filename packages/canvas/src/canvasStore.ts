@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { CANVAS_CONSTANTS } from "@/constants";
-import type { Element } from "../types/plugin";
+import type { Element } from "./plugin";
 
 export interface ViewBox {
 	x: number;
@@ -288,8 +288,8 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 			const selectedElements = multi
 				? state.selectionState.selectedElements.includes(id)
 					? state.selectionState.selectedElements.filter(
-							(selectedId) => selectedId !== id,
-						)
+						(selectedId) => selectedId !== id,
+					)
 					: [...state.selectionState.selectedElements, id]
 				: [id];
 

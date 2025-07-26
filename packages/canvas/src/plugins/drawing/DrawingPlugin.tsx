@@ -8,7 +8,7 @@ import type {
 	Plugin,
 	PluginAPI,
 	ToolDefinition,
-} from "../../types/plugin";
+} from "../../plugin";
 
 // Helper function to calculate distance from point to line segment
 const distanceToLineSegment = (

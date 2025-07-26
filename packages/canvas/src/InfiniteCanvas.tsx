@@ -5,7 +5,7 @@ import { useCanvasEvents } from "./hooks/useCanvasEvents";
 import { useZoomPrevention } from "./hooks/useZoomPrevention";
 import { CanvasRenderer } from "./components/CanvasRenderer";
 import { CanvasOverlay } from "./components/CanvasOverlay";
-import type { Plugin } from "./types/plugin";
+import type { Plugin } from "./plugin";
 
 interface InfiniteCanvasProps {
 	plugins?: Plugin[];

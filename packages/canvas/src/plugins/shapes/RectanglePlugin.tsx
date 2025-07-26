@@ -7,7 +7,7 @@ import type {
 	Plugin,
 	PluginAPI,
 	ToolDefinition,
-} from "../../types/plugin";
+} from "../../plugin";
 
 const createRectangleTool = (api: PluginAPI): ToolDefinition => ({
 	id: "rectangle",

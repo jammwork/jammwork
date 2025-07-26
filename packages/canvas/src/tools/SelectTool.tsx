@@ -1,13 +1,12 @@
-import React from "react";
 import { MousePointer } from "lucide-react";
-import type { ToolDefinition } from "../types/plugin";
-import { useCanvasStore } from "../stores/canvasStore";
+import type { ToolDefinition } from "../plugin";
+import { useCanvasStore } from "../canvasStore";
 import {
 	findElementAtPoint,
 	findElementsInBounds,
 	findResizeHandleAtPoint,
 	getSelectionBoxBounds,
-} from "../utils/hitTesting";
+} from "../hitTesting";
 
 export const createSelectTool = (): ToolDefinition => {
 	return {
@@ -18,7 +17,7 @@ export const createSelectTool = (): ToolDefinition => {
 
 		onActivate: () => {
 			// Clear any ongoing operations when select tool is activated
-			const { clearSelection, endSelectionBox, endElementDrag, endResize } =
+			const { endSelectionBox, endElementDrag, endResize } =
 				useCanvasStore.getState();
 			endSelectionBox();
 			endElementDrag();

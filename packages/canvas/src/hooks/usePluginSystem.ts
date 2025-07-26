@@ -4,7 +4,7 @@ import { PluginAPIImpl } from "../core/PluginAPI";
 import { EventBus } from "../core/EventBus";
 import { DrawingPlugin } from "../plugins/drawing";
 import { RectanglePlugin } from "../plugins/shapes/RectanglePlugin";
-import type { Plugin } from "../types/plugin";
+import type { Plugin } from "../plugin";
 
 interface UsePluginSystemProps {
 	plugins?: Plugin[];

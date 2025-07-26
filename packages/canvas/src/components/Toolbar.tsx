@@ -1,5 +1,5 @@
 import { Button } from "@jammwork/ui";
-import { useCanvasStore } from "../stores/canvasStore";
+import { useCanvasStore } from "../canvasStore";
 import { MousePointer2, Hand } from "lucide-react";
 
 interface ToolbarProps {

@@ -4,7 +4,7 @@ import type {
 	Plugin,
 	PluginAPI,
 	PluginManagerConfig,
-} from "../types/plugin";
+} from "../plugin";
 
 export class PluginManager {
 	private plugins = new Map<string, Plugin>();

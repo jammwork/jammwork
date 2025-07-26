@@ -1,4 +1,4 @@
-import { useCanvasStore } from "../stores/canvasStore";
+import { useCanvasStore } from "../canvasStore";
 import type { EventBus } from "./EventBus";
 import type {
 	PluginAPI,
@@ -10,7 +10,7 @@ import type {
 	Disposable,
 	PluginEvent,
 	PluginEventData,
-} from "../types/plugin";
+} from "../plugin";
 
 export class PluginAPIImpl implements PluginAPI {
 	private eventBus: EventBus;

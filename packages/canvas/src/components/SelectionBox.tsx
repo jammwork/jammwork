@@ -1,5 +1,5 @@
 import React from "react";
-import { useCanvasStore } from "../stores/canvasStore";
+import { useCanvasStore } from "../canvasStore";
 
 interface SelectionBoxProps {
 	className?: string;

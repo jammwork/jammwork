@@ -1,4 +1,4 @@
-import type { Element } from "../types/plugin";
+import type { Element } from "./plugin";
 
 export interface Point {
 	x: number;

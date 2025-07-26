@@ -1,6 +1,6 @@
 import { useCallback, useEffect, type RefObject } from "react";
-import { useCanvasStore } from "../stores/canvasStore";
-import type { PluginAPI } from "../types/plugin";
+import { useCanvasStore } from "../canvasStore";
+import type { PluginAPI } from "../plugin";
 import { createSelectTool } from "../tools/SelectTool";
 
 interface UseCanvasEventsProps {
