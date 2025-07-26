@@ -1,11 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import { useCanvasStore } from "../stores/canvasStore";
 
-export const useViewport = () => {
+interface UseViewportProps {
+	pluginApi?: {
+		getRegisteredTools: () => Map<string, any>;
+	};
+}
+
+export const useViewport = (props?: UseViewportProps) => {
 	const {
 		viewBox,
 		dragState,
 		dimensions,
+		toolState,
 		setDimensions,
 		startDrag,
 		updateDrag,
@@ -26,23 +33,27 @@ export const useViewport = () => {
 		};
 	}, [setDimensions]);
 
-	const getViewBoxString = () => {
+	const getViewBoxString = useCallback(() => {
 		const viewBoxWidth = dimensions.width / viewBox.zoom;
 		const viewBoxHeight = dimensions.height / viewBox.zoom;
 		return `${viewBox.x} ${viewBox.y} ${viewBoxWidth} ${viewBoxHeight}`;
-	};
+	}, [dimensions.width, dimensions.height, viewBox.x, viewBox.y, viewBox.zoom]);
 
-	const getCursor = () => {
-		const { toolState } = useCanvasStore.getState();
-
+	const getCursor = useMemo(() => {
 		if (dragState.isDragging) return "grabbing";
+
+		// Check for plugin tool cursor
+		if (props?.pluginApi) {
+			const registeredTools = props.pluginApi.getRegisteredTools();
+			const activeTool = registeredTools.get(toolState.activeTool);
+			if (activeTool?.cursor) return activeTool.cursor;
+		}
 
 		if (toolState.activeTool === "select") return "default";
 		if (toolState.activeTool === "pan") return "grab";
-		if (toolState.activeTool === "draw") return "crosshair";
 
 		return "default";
-	};
+	}, [dragState.isDragging, toolState.activeTool, props?.pluginApi]);
 
 	return {
 		viewBox,

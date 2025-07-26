@@ -18,6 +18,7 @@ export class PluginAPIImpl implements PluginAPI {
 	private tools = new Map<string, ToolDefinition>();
 	private toolbarComponents: React.ComponentType[] = [];
 	private contextMenuItems: ContextMenuItem[] = [];
+	private layerComponents: React.ComponentType[] = [];
 	private elements = new Map<string, Element>();
 	private selectedElements: string[] = [];
 
@@ -73,6 +74,29 @@ export class PluginAPIImpl implements PluginAPI {
 		return [...this.selectedElements];
 	}
 
+	// Coordinate conversion utilities
+	screenToCanvas(screenPosition: { x: number; y: number }): {
+		x: number;
+		y: number;
+	} {
+		const state = useCanvasStore.getState();
+		return {
+			x: state.viewBox.x + screenPosition.x / state.viewBox.zoom,
+			y: state.viewBox.y + screenPosition.y / state.viewBox.zoom,
+		};
+	}
+
+	canvasToScreen(canvasPosition: { x: number; y: number }): {
+		x: number;
+		y: number;
+	} {
+		const state = useCanvasStore.getState();
+		return {
+			x: (canvasPosition.x - state.viewBox.x) * state.viewBox.zoom,
+			y: (canvasPosition.y - state.viewBox.y) * state.viewBox.zoom,
+		};
+	}
+
 	// UI extensions
 	registerToolbarComponent(component: React.ComponentType): Disposable {
 		this.toolbarComponents.push(component);
@@ -104,9 +128,22 @@ export class PluginAPIImpl implements PluginAPI {
 		};
 	}
 
+	registerLayerComponent(component: React.ComponentType): Disposable {
+		this.layerComponents.push(component);
+
+		return {
+			dispose: () => {
+				const index = this.layerComponents.indexOf(component);
+				if (index > -1) {
+					this.layerComponents.splice(index, 1);
+				}
+			},
+		};
+	}
+
 	// Element operations via events
 	createElement(element: Omit<Element, "id">): string {
-		const id = `element_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+		const id = `element_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 		const newElement: Element = { ...element, id };
 
 		this.elements.set(id, newElement);
@@ -213,6 +250,10 @@ export class PluginAPIImpl implements PluginAPI {
 
 	getContextMenuItems(): ContextMenuItem[] {
 		return [...this.contextMenuItems];
+	}
+
+	getLayerComponents(): React.ComponentType[] {
+		return [...this.layerComponents];
 	}
 
 	getElements(): Map<string, Element> {

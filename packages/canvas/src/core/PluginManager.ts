@@ -28,7 +28,7 @@ export class PluginManager {
 
 	async loadPlugin(plugin: Plugin): Promise<void> {
 		if (this.plugins.has(plugin.id)) {
-			throw new Error(`Plugin with id "${plugin.id}" is already loaded`);
+			return;
 		}
 
 		this.plugins.set(plugin.id, plugin);
@@ -59,7 +59,11 @@ export class PluginManager {
 
 		const disposables: Disposable[] = [];
 		const pluginAPI: PluginAPI = {
-			...this.api,
+			// Element management
+			registerElementType: this.api.registerElementType.bind(this.api),
+			registerTool: this.api.registerTool.bind(this.api),
+
+			// Event bus system (override with disposable tracking)
 			on: (event, handler) => {
 				const disposable = this.eventBus.on(event, handler);
 				disposables.push(disposable);
@@ -68,6 +72,35 @@ export class PluginManager {
 			emit: (event, data) => {
 				this.eventBus.emit(event, data);
 			},
+
+			// Core canvas state
+			getCanvasState: this.api.getCanvasState.bind(this.api),
+			getSelectedElements: this.api.getSelectedElements.bind(this.api),
+
+			// Coordinate conversion utilities
+			screenToCanvas: this.api.screenToCanvas.bind(this.api),
+			canvasToScreen: this.api.canvasToScreen.bind(this.api),
+
+			// UI extensions
+			registerToolbarComponent: this.api.registerToolbarComponent.bind(
+				this.api,
+			),
+			registerContextMenuItems: this.api.registerContextMenuItems.bind(
+				this.api,
+			),
+			registerLayerComponent: this.api.registerLayerComponent.bind(this.api),
+
+			// Registry access methods
+			getRegisteredTools: this.api.getRegisteredTools.bind(this.api),
+			getLayerComponents: this.api.getLayerComponents.bind(this.api),
+
+			// Element operations
+			createElement: this.api.createElement.bind(this.api),
+			updateElement: this.api.updateElement.bind(this.api),
+			deleteElement: this.api.deleteElement.bind(this.api),
+			selectElement: this.api.selectElement.bind(this.api),
+			deselectElement: this.api.deselectElement.bind(this.api),
+			clearSelection: this.api.clearSelection.bind(this.api),
 		};
 
 		try {
@@ -75,6 +108,7 @@ export class PluginManager {
 			this.activePlugins.set(pluginId, { plugin, disposables });
 			this.eventBus.emit("plugin:activated", { plugin });
 		} catch (error) {
+			console.error(`Failed to activate plugin "${pluginId}":`, error);
 			disposables.forEach((d) => d.dispose());
 			throw new Error(`Failed to activate plugin "${pluginId}": ${error}`);
 		}

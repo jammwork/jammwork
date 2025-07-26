@@ -85,9 +85,24 @@ export interface PluginAPI {
 	getCanvasState(): Readonly<CanvasState>;
 	getSelectedElements(): readonly string[];
 
+	// Coordinate conversion utilities
+	screenToCanvas(screenPosition: { x: number; y: number }): {
+		x: number;
+		y: number;
+	};
+	canvasToScreen(canvasPosition: { x: number; y: number }): {
+		x: number;
+		y: number;
+	};
+
 	// UI extensions
 	registerToolbarComponent(component: React.ComponentType): Disposable;
 	registerContextMenuItems(items: ContextMenuItem[]): Disposable;
+	registerLayerComponent(component: React.ComponentType): Disposable;
+
+	// Registry access methods
+	getRegisteredTools(): Map<string, ToolDefinition>;
+	getLayerComponents(): React.ComponentType[];
 
 	// Element operations via events
 	createElement(element: Omit<Element, "id">): string;

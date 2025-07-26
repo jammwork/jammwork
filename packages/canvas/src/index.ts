@@ -9,8 +9,6 @@ export type {
 	DragState,
 	CanvasTool,
 	ToolState,
-	DrawPath,
-	DrawState,
 } from "./stores/canvasStore";
 
 // Plugin system exports
@@ -18,3 +16,6 @@ export { PluginManager } from "./core/PluginManager";
 export { PluginAPIImpl } from "./core/PluginAPI";
 export { EventBus } from "./core/EventBus";
 export type * from "./types/plugin";
+
+// Built-in plugins
+export * from "./plugins";

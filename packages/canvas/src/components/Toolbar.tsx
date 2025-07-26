@@ -1,51 +1,54 @@
 import { Button } from "@jammwork/ui";
 import { useCanvasStore } from "../stores/canvasStore";
-import { MousePointer2, Hand, Pen } from "lucide-react";
-import type { CanvasTool } from "../stores/canvasStore";
+import { MousePointer2, Hand } from "lucide-react";
 
-function Toolbar() {
+interface ToolbarProps {
+	pluginApi?: {
+		getRegisteredTools: () => Map<string, any>;
+	};
+}
+
+function Toolbar({ pluginApi }: ToolbarProps) {
 	const { toolState, setActiveTool } = useCanvasStore();
 
-	const tools: Array<{
-		id: CanvasTool;
-		name: string;
-		icon: React.ReactNode;
-		shortcut: string;
-	}> = [
+	// Core tools
+	const coreTools = [
 		{
 			id: "select",
 			name: "Select",
 			icon: <MousePointer2 size={16} />,
-			shortcut: "V",
+			cursor: "default",
 		},
 		{
 			id: "pan",
 			name: "Pan & Zoom",
 			icon: <Hand size={16} />,
-			shortcut: "H",
-		},
-		{
-			id: "draw",
-			name: "Draw",
-			icon: <Pen size={16} />,
-			shortcut: "P",
+			cursor: "grab",
 		},
 	];
 
-	const handleToolClick = (tool: CanvasTool) => {
-		setActiveTool(tool);
+	// Get plugin tools
+	const pluginTools = pluginApi
+		? Array.from(pluginApi.getRegisteredTools().values())
+		: [];
+
+	// Combine all tools
+	const allTools = [...coreTools, ...pluginTools];
+
+	const handleToolClick = (toolId: string) => {
+		setActiveTool(toolId);
 	};
 
 	return (
 		<div className="fixed bottom-3 left-0 right-0 flex flex-col gap-1 justify-center items-center">
 			<div className="p-2 bg-secondary rounded-lg shadow-lg space-x-0.5 flex items-center">
-				{tools.map((tool) => (
+				{allTools.map((tool) => (
 					<Button
 						key={tool.id}
 						variant={toolState.activeTool === tool.id ? "default" : "ghost"}
 						size="icon"
 						onClick={() => handleToolClick(tool.id)}
-						title={`${tool.name} (${tool.shortcut})`}
+						title={tool.name}
 					>
 						{tool.icon}
 					</Button>
