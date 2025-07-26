@@ -1,5 +1,5 @@
 import { Circle } from "lucide-react";
-import type { PluginAPI, ToolDefinition } from "../../../plugin";
+import type { PluginAPI, ToolDefinition } from "@jammwork/api";
 import { useCircleCreationStore } from "../stores/circleStore";
 
 export const createCircleTool = (api: PluginAPI): ToolDefinition => ({

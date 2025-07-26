@@ -1,4 +1,4 @@
-import type { Element } from "./plugin";
+import type { Element } from "@jammwork/api";
 
 export interface Point {
 	x: number;

@@ -1,11 +1,11 @@
-import { useRef, useMemo } from "react";
-import { useViewport } from "./hooks/useViewport";
-import { usePluginSystem } from "./hooks/usePluginSystem";
-import { useCanvasEvents } from "./hooks/useCanvasEvents";
-import { useZoomPrevention } from "./hooks/useZoomPrevention";
-import { CanvasRenderer } from "./components/CanvasRenderer";
+import type { Plugin } from "@jammwork/api";
+import { useMemo, useRef } from "react";
 import { CanvasOverlay } from "./components/CanvasOverlay";
-import type { Plugin } from "./plugin";
+import { CanvasRenderer } from "./components/CanvasRenderer";
+import { useCanvasEvents } from "./hooks/useCanvasEvents";
+import { usePluginSystem } from "./hooks/usePluginSystem";
+import { useViewport } from "./hooks/useViewport";
+import { useZoomPrevention } from "./hooks/useZoomPrevention";
 
 interface InfiniteCanvasProps {
 	plugins?: Plugin[];

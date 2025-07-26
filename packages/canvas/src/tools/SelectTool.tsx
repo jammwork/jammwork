@@ -1,6 +1,6 @@
+import type { ToolDefinition } from "@jammwork/api";
 import { MousePointer } from "lucide-react";
-import type { ToolDefinition } from "../plugin";
-import { useCanvasStore } from "../canvasStore";
+import { useCanvasStore } from "@/store";
 import {
 	findElementAtPoint,
 	findElementsInBounds,
@@ -112,7 +112,7 @@ export const createSelectTool = (): ToolDefinition => {
 			}
 		},
 
-		onMouseUp: (event, position) => {
+		onMouseUp: (event) => {
 			const state = useCanvasStore.getState();
 			const {
 				selectionState,
@@ -121,14 +121,7 @@ export const createSelectTool = (): ToolDefinition => {
 				endElementDrag,
 				endResize,
 				selectElement,
-				viewBox,
 			} = state;
-
-			// Convert screen position to canvas position
-			const canvasPosition = {
-				x: viewBox.x + position.x / viewBox.zoom,
-				y: viewBox.y + position.y / viewBox.zoom,
-			};
 
 			// Handle selection box completion
 			if (selectionState.selectionBox?.isActive) {

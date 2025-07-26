@@ -1,7 +1,7 @@
-import React from "react";
-import { useCanvasStore } from "../canvasStore";
-import { SelectionBox } from "./SelectionBox";
+import type React from "react";
+import { useCanvasStore } from "@/store";
 import { SelectionIndicator } from "./ResizeHandles";
+import { SelectionBox } from "./SelectionBox";
 
 export const SelectionLayer: React.FC = () => {
 	const { selectedElements, hoveredElement } = useCanvasStore(

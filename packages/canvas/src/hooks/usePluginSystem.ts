@@ -1,10 +1,10 @@
-import { useRef, useState, useEffect, useMemo } from "react";
-import { PluginManager } from "../core/PluginManager";
-import { PluginAPIImpl } from "../core/PluginAPI";
-import { EventBus } from "../core/EventBus";
+import type { Plugin } from "@jammwork/api";
+import { EventBus } from "@jammwork/api";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { PluginAPIImpl } from "../PluginImpl";
+import { PluginManager } from "../PluginManager";
 import { DrawingPlugin } from "../plugins/drawing";
 import { ShapesPlugin } from "../plugins/shapes";
-import type { Plugin } from "../plugin";
 
 interface UsePluginSystemProps {
 	plugins?: Plugin[];

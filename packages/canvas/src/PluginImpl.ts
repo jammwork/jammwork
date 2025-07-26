@@ -1,16 +1,16 @@
-import { useCanvasStore } from "../canvasStore";
-import type { EventBus } from "./EventBus";
 import type {
-	PluginAPI,
-	ElementRenderer,
-	ToolDefinition,
-	ContextMenuItem,
-	Element,
 	CanvasState,
+	ContextMenuItem,
 	Disposable,
+	Element,
+	ElementRenderer,
+	EventBus,
+	PluginAPI,
 	PluginEvent,
 	PluginEventData,
-} from "../plugin";
+	ToolDefinition,
+} from "@jammwork/api";
+import { useCanvasStore } from "@/store";
 
 export class PluginAPIImpl implements PluginAPI {
 	private eventBus: EventBus;
@@ -190,7 +190,6 @@ export class PluginAPIImpl implements PluginAPI {
 			throw new Error(`Element with id "${id}" not found`);
 		}
 
-		const previous = { ...element };
 		state.updateElement(id, updates);
 
 		const updatedElement = state.elements.get(id);

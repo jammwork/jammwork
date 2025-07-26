@@ -1,5 +1,5 @@
+import type { Element, PluginAPI } from "@jammwork/api";
 import type React from "react";
-import type { Element, PluginAPI } from "../../../plugin";
 import { TriangleRenderer } from "../renderers/TriangleRenderer";
 
 export const createTriangleLayer =

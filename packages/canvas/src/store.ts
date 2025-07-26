@@ -1,6 +1,6 @@
+import type { Element } from "@jammwork/api";
+import { CANVAS_CONSTANTS } from "@jammwork/api";
 import { create } from "zustand";
-import { CANVAS_CONSTANTS } from "@/constants";
-import type { Element } from "./plugin";
 
 export interface ViewBox {
 	x: number;
@@ -449,7 +449,12 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 			if (!element) return state;
 
 			// Get bounds based on element type
-			let originalBounds;
+			let originalBounds: {
+				x: number;
+				y: number;
+				width: number;
+				height: number;
+			};
 			if (element.type === "circle") {
 				// Use radiusX/radiusY if available, fallback to radius for backwards compatibility
 				const radiusX =

@@ -1,7 +1,7 @@
-import { useCallback, useEffect, type RefObject } from "react";
-import { useCanvasStore } from "../canvasStore";
-import type { PluginAPI } from "../plugin";
-import { createSelectTool } from "../tools/SelectTool";
+import type { PluginAPI } from "@jammwork/api";
+import { type RefObject, useCallback, useEffect } from "react";
+import { useCanvasStore } from "@/store";
+import { createSelectTool } from "@/tools/SelectTool";
 
 interface UseCanvasEventsProps {
 	svgRef: RefObject<SVGSVGElement | null>;

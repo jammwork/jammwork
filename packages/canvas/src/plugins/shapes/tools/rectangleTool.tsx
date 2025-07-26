@@ -1,5 +1,5 @@
 import { Square } from "lucide-react";
-import type { PluginAPI, ToolDefinition } from "../../../plugin";
+import type { PluginAPI, ToolDefinition } from "@jammwork/api";
 import { useRectangleCreationStore } from "../stores/rectangleStore";
 
 export const createRectangleTool = (api: PluginAPI): ToolDefinition => ({

@@ -1,6 +1,5 @@
-import React from "react";
 import { Square } from "lucide-react";
-import type { Plugin, PluginAPI } from "../../plugin";
+import type { Plugin, PluginAPI } from "@jammwork/api";
 import { createRectangleTool } from "./tools/rectangleTool";
 import { createCircleTool } from "./tools/circleTool";
 import { createTriangleTool } from "./tools/triangleTool";

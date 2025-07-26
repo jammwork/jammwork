@@ -1,7 +1,7 @@
+import type { PluginAPI, ToolDefinition } from "@jammwork/api";
 import { Button } from "@jammwork/ui";
-import { useCanvasStore } from "../canvasStore";
-import { MousePointer2, Hand } from "lucide-react";
-import type { PluginAPI, ToolDefinition } from "../plugin";
+import { Hand, MousePointer2 } from "lucide-react";
+import { useCanvasStore } from "@/store";
 
 interface ToolbarProps {
 	pluginApi?: PluginAPI;

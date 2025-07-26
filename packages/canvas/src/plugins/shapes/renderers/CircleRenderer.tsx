@@ -1,5 +1,5 @@
+import type { Element } from "@jammwork/api";
 import type React from "react";
-import type { Element } from "../../../plugin";
 
 export const CircleRenderer: React.FC<{ element: Element }> = ({ element }) => {
 	const { properties } = element;

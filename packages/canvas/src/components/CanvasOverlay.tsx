@@ -1,7 +1,7 @@
+import type { PluginAPI } from "@jammwork/api";
 import React from "react";
 import { PositionDisplay } from "./PositionDisplay";
 import Toolbar from "./Toolbar";
-import type { PluginAPI } from "../plugin";
 
 interface CanvasOverlayProps {
 	pluginApi: PluginAPI;

@@ -1,14 +1,14 @@
-import { Pen } from "lucide-react";
-import { DrawingLayer } from "./components/DrawingLayer";
-import { useDrawingStore } from "./store";
-import type { Position } from "./types";
 import type {
 	Element,
 	ElementRenderer,
 	Plugin,
 	PluginAPI,
 	ToolDefinition,
-} from "../../plugin";
+} from "@jammwork/api";
+import { Pen } from "lucide-react";
+import { DrawingLayer } from "./components/DrawingLayer";
+import { useDrawingStore } from "./store";
+import type { Position } from "./types";
 
 // Helper function to calculate distance from point to line segment
 const distanceToLineSegment = (

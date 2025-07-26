@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { DRAWING_CONSTANTS } from "./constants";
-import type { DrawState, DrawPath, Position } from "./types";
+import type { DrawState, Position } from "./types";
 
 interface DrawingActions {
 	startDrawing: (canvasPosition: Position) => void;

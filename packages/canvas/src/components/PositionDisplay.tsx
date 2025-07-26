@@ -1,4 +1,4 @@
-import { useCanvasStore } from "../canvasStore";
+import { useCanvasStore } from "@/store";
 
 export const PositionDisplay = () => {
 	const { viewBox } = useCanvasStore();

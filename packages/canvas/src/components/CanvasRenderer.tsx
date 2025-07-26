@@ -1,5 +1,6 @@
-import React, { forwardRef, useMemo } from "react";
-import { CANVAS_CONSTANTS } from "@/constants";
+import { CANVAS_CONSTANTS } from "@jammwork/api";
+import type React from "react";
+import { forwardRef, useMemo } from "react";
 import { SelectionLayer } from "./SelectionLayer";
 
 interface CanvasRendererProps {

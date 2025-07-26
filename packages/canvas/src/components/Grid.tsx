@@ -1,4 +1,4 @@
-import { CANVAS_CONSTANTS } from "@/constants";
+import { CANVAS_CONSTANTS } from "@jammwork/api";
 
 export const Grid = () => {
 	return (

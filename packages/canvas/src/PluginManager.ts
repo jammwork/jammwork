@@ -1,10 +1,11 @@
-import { EventBus } from "./EventBus";
 import type {
 	Disposable,
 	Plugin,
 	PluginAPI,
 	PluginManagerConfig,
-} from "../plugin";
+	ToolDefinition,
+} from "@jammwork/api";
+import { EventBus } from "@jammwork/api";
 
 export class PluginManager {
 	private plugins = new Map<string, Plugin>();
@@ -105,6 +106,12 @@ export class PluginManager {
 			selectElement: this.api.selectElement.bind(this.api),
 			deselectElement: this.api.deselectElement.bind(this.api),
 			clearSelection: this.api.clearSelection.bind(this.api),
+			getMainTools: (): Map<string, ToolDefinition> => {
+				throw new Error("Function not implemented.");
+			},
+			getSecondaryTools: (_mainToolId: string): ToolDefinition[] => {
+				throw new Error("Function not implemented.");
+			},
 		};
 
 		try {

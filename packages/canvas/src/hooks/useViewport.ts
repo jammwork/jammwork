@@ -1,5 +1,5 @@
-import { useEffect, useCallback, useMemo } from "react";
-import { useCanvasStore } from "../canvasStore";
+import { useCallback, useEffect, useMemo } from "react";
+import { useCanvasStore } from "@/store";
 
 interface UseViewportProps {
 	pluginApi?: {

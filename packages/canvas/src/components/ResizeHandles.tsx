@@ -1,5 +1,5 @@
-import { getResizeHandles } from "../hitTesting";
-import type { Element } from "../plugin";
+import type { Element } from "@jammwork/api";
+import { getResizeHandles } from "@/hitTesting";
 
 interface ResizeHandlesProps {
 	element: Element;
