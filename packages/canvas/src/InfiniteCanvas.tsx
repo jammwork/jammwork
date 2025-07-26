@@ -2,6 +2,7 @@ import { useRef, useCallback, useEffect } from "react";
 import { useViewport } from "./hooks/useViewport";
 import { PositionDisplay } from "./components/PositionDisplay";
 import { CANVAS_CONSTANTS } from "@/constants";
+import Toolbar from "./components/Toolbar";
 
 export const InfiniteCanvas: React.FC = () => {
 	const svgRef = useRef<SVGSVGElement>(null);
@@ -201,6 +202,7 @@ export const InfiniteCanvas: React.FC = () => {
 			</svg>
 
 			<PositionDisplay />
+			<Toolbar />
 		</div>
 	);
 };
