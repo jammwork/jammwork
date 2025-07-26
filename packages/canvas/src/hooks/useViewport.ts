@@ -40,6 +40,10 @@ export const useViewport = (props?: UseViewportProps) => {
 	}, [dimensions.width, dimensions.height, viewBox.x, viewBox.y, viewBox.zoom]);
 
 	const getCursor = useMemo(() => {
+		// Space panning takes priority
+		if (toolState.isSpacePanning) return "grabbing";
+		if (toolState.isSpacePressed) return "grab";
+
 		if (dragState.isDragging) return "grabbing";
 
 		// Check for plugin tool cursor
@@ -53,7 +57,13 @@ export const useViewport = (props?: UseViewportProps) => {
 		if (toolState.activeTool === "pan") return "grab";
 
 		return "default";
-	}, [dragState.isDragging, toolState.activeTool, props?.pluginApi]);
+	}, [
+		dragState.isDragging,
+		toolState.activeTool,
+		toolState.isSpacePressed,
+		toolState.isSpacePanning,
+		props?.pluginApi,
+	]);
 
 	return {
 		viewBox,

@@ -22,6 +22,8 @@ export type CanvasTool = "select" | "pan";
 
 export interface ToolState {
 	activeTool: string; // Changed to string to support dynamic plugin tools
+	isSpacePressed: boolean;
+	isSpacePanning: boolean;
 }
 
 export interface SelectionState {
@@ -67,6 +69,8 @@ interface CanvasActions {
 	zoomTo: (zoom: number, centerX?: number, centerY?: number) => void;
 	zoomAt: (deltaZoom: number, centerX: number, centerY: number) => void;
 	setActiveTool: (tool: string) => void;
+	setSpacePressed: (pressed: boolean) => void;
+	setSpacePanning: (panning: boolean) => void;
 
 	// Element management
 	createElement: (element: Omit<Element, "id">) => string;
@@ -108,7 +112,11 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 		width: CANVAS_CONSTANTS.VIEWPORT.DEFAULT_WIDTH,
 		height: CANVAS_CONSTANTS.VIEWPORT.DEFAULT_HEIGHT,
 	},
-	toolState: { activeTool: "pan" },
+	toolState: {
+		activeTool: "pan",
+		isSpacePressed: false,
+		isSpacePanning: false,
+	},
 	selectionState: {
 		selectedElements: [],
 		hoveredElement: null,
@@ -214,6 +222,16 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 	setActiveTool: (tool) =>
 		set((state) => ({
 			toolState: { ...state.toolState, activeTool: tool },
+		})),
+
+	setSpacePressed: (pressed) =>
+		set((state) => ({
+			toolState: { ...state.toolState, isSpacePressed: pressed },
+		})),
+
+	setSpacePanning: (panning) =>
+		set((state) => ({
+			toolState: { ...state.toolState, isSpacePanning: panning },
 		})),
 
 	// Element management

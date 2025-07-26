@@ -1,4 +1,4 @@
-import { useCallback, useEffect, RefObject } from "react";
+import { useCallback, useEffect, type RefObject } from "react";
 import { useCanvasStore } from "../stores/canvasStore";
 import type { PluginAPI } from "../types/plugin";
 import { createSelectTool } from "../tools/SelectTool";
@@ -26,7 +26,18 @@ export const useCanvasEvents = ({
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.target !== document.body) return; // Only handle when not in input
 
-			const { setActiveTool, toolState } = useCanvasStore.getState();
+			const { setActiveTool, toolState, setSpacePressed } =
+				useCanvasStore.getState();
+
+			// Handle space bar for temporary panning
+			if (e.code === "Space" && !toolState.isSpacePressed) {
+				setSpacePressed(true);
+				e.preventDefault();
+				return;
+			}
+
+			// Don't handle other keys if space is pressed (to allow space+drag panning)
+			if (toolState.isSpacePressed) return;
 
 			// First check if the current tool handles the keydown
 			if (toolState.activeTool === "select" && selectTool.onKeyDown) {
@@ -58,13 +69,30 @@ export const useCanvasEvents = ({
 			}
 		};
 
+		const handleKeyUp = (e: KeyboardEvent) => {
+			if (e.target !== document.body) return;
+
+			const { setSpacePressed, setSpacePanning } = useCanvasStore.getState();
+
+			// Handle space bar release
+			if (e.code === "Space") {
+				setSpacePressed(false);
+				setSpacePanning(false);
+				e.preventDefault();
+			}
+		};
+
 		document.addEventListener("keydown", handleKeyDown);
-		return () => document.removeEventListener("keydown", handleKeyDown);
+		document.addEventListener("keyup", handleKeyUp);
+		return () => {
+			document.removeEventListener("keydown", handleKeyDown);
+			document.removeEventListener("keyup", handleKeyUp);
+		};
 	}, [selectTool, pluginApi]);
 
 	const handleMouseDown = useCallback(
 		(e: React.MouseEvent) => {
-			const { toolState } = useCanvasStore.getState();
+			const { toolState, setSpacePanning } = useCanvasStore.getState();
 			const rect = svgRef.current?.getBoundingClientRect();
 			if (!rect) return;
 
@@ -72,6 +100,13 @@ export const useCanvasEvents = ({
 				x: e.clientX - rect.left,
 				y: e.clientY - rect.top,
 			};
+
+			// If space is pressed, start space panning regardless of current tool
+			if (toolState.isSpacePressed) {
+				setSpacePanning(true);
+				startDrag({ x: e.clientX, y: e.clientY });
+				return;
+			}
 
 			// Check if there's an active plugin tool
 			const registeredTools = pluginApi.getRegisteredTools();
@@ -101,6 +136,12 @@ export const useCanvasEvents = ({
 				y: e.clientY - rect.top,
 			};
 
+			// If space panning is active, handle panning
+			if (toolState.isSpacePanning) {
+				updateDrag({ x: e.clientX, y: e.clientY });
+				return;
+			}
+
 			// Check if there's an active plugin tool
 			const registeredTools = pluginApi.getRegisteredTools();
 			const activeTool = Array.from(registeredTools.values()).find(
@@ -120,7 +161,7 @@ export const useCanvasEvents = ({
 
 	const handleMouseUp = useCallback(
 		(e: React.MouseEvent) => {
-			const { toolState } = useCanvasStore.getState();
+			const { toolState, setSpacePanning } = useCanvasStore.getState();
 			const rect = svgRef.current?.getBoundingClientRect();
 			if (!rect) return;
 
@@ -128,6 +169,13 @@ export const useCanvasEvents = ({
 				x: e.clientX - rect.left,
 				y: e.clientY - rect.top,
 			};
+
+			// If space panning was active, end it
+			if (toolState.isSpacePanning) {
+				setSpacePanning(false);
+				endDrag();
+				return;
+			}
 
 			// Check if there's an active plugin tool
 			const registeredTools = pluginApi.getRegisteredTools();
