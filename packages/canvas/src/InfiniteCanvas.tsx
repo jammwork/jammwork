@@ -9,15 +9,20 @@ import type { Plugin } from "./types/plugin";
 
 interface InfiniteCanvasProps {
 	plugins?: Plugin[];
+	accentColor?: string;
 }
 
 export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 	plugins = [],
+	accentColor = "#3b82f6",
 }) => {
 	const svgRef = useRef<SVGSVGElement>(null);
 
 	// Plugin system management
-	const { api, layerComponents, pluginsLoaded } = usePluginSystem({ plugins });
+	const { api, layerComponents, pluginsLoaded } = usePluginSystem({
+		plugins,
+		accentColor,
+	});
 
 	// Viewport and canvas state
 	const {

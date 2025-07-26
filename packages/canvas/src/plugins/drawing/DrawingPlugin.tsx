@@ -140,7 +140,7 @@ const createDrawingTool = (api: PluginAPI): ToolDefinition => ({
 				properties: {
 					points: currentPath,
 					originalPoints: currentPath, // Store original points for position calculations
-					color: "#000000",
+					color: api.getAccentColor(),
 					strokeWidth: 2,
 				},
 			});
@@ -212,7 +212,9 @@ export const DrawingPlugin: Plugin = {
 			api.registerTool(drawingTool);
 
 			// Register the drawing layer component for live drawing (current path only)
-			api.registerLayerComponent(DrawingLayer);
+			api.registerLayerComponent(() => (
+				<DrawingLayer accentColor={api.getAccentColor()} />
+			));
 
 			// Register a layer component to render path elements
 			api.registerLayerComponent(() => {

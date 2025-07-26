@@ -8,13 +8,14 @@ import type { Plugin } from "../types/plugin";
 
 interface UsePluginSystemProps {
 	plugins?: Plugin[];
+	accentColor?: string;
 }
 
 export const usePluginSystem = ({
 	plugins = [],
+	accentColor = "#3b82f6",
 }: UsePluginSystemProps = {}) => {
 	const [pluginsLoaded, setPluginsLoaded] = useState(false);
-	const [initialized, setInitialized] = useState(false);
 
 	// Initialize plugin system once and keep stable reference
 	const pluginSystemRef = useRef<{
@@ -25,7 +26,7 @@ export const usePluginSystem = ({
 
 	if (!pluginSystemRef.current) {
 		const eventBus = new EventBus();
-		const api = new PluginAPIImpl(eventBus);
+		const api = new PluginAPIImpl(eventBus, accentColor);
 		const manager = new PluginManager(api);
 		pluginSystemRef.current = { eventBus, api, manager };
 	}

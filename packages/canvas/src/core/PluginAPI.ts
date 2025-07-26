@@ -19,9 +19,11 @@ export class PluginAPIImpl implements PluginAPI {
 	private toolbarComponents: React.ComponentType[] = [];
 	private contextMenuItems: ContextMenuItem[] = [];
 	private layerComponents: React.ComponentType[] = [];
+	private accentColor: string;
 
-	constructor(eventBus: EventBus) {
+	constructor(eventBus: EventBus, accentColor = "#3b82f6") {
 		this.eventBus = eventBus;
+		this.accentColor = accentColor;
 	}
 
 	// Element management
@@ -272,5 +274,10 @@ export class PluginAPIImpl implements PluginAPI {
 	getElements(): Map<string, Element> {
 		const state = useCanvasStore.getState();
 		return new Map(state.elements);
+	}
+
+	// Theme and styling
+	getAccentColor(): string {
+		return this.accentColor;
 	}
 }

@@ -31,13 +31,16 @@ const DrawnPath: React.FC<{ path: DrawPath }> = ({ path }) => (
 	/>
 );
 
-const CurrentPath: React.FC<{ points: Position[] }> = ({ points }) => {
+const CurrentPath: React.FC<{ points: Position[]; color: string }> = ({
+	points,
+	color,
+}) => {
 	if (points.length === 0) return null;
 
 	return (
 		<path
 			d={pathFromPoints(points)}
-			stroke={DRAWING_CONSTANTS.DEFAULT_COLOR}
+			stroke={color}
 			strokeWidth={DRAWING_CONSTANTS.DEFAULT_STROKE_WIDTH}
 			fill="none"
 			strokeLinecap="round"
@@ -47,18 +50,26 @@ const CurrentPath: React.FC<{ points: Position[] }> = ({ points }) => {
 	);
 };
 
-export const DrawingLayer: React.FC = React.memo(() => {
-	const { isDrawing, currentPath, paths } = useDrawingStore();
+interface DrawingLayerProps {
+	accentColor?: string;
+}
 
-	return (
-		<g>
-			{/* Render completed paths */}
-			{paths.map((path) => (
-				<DrawnPath key={path.id} path={path} />
-			))}
+export const DrawingLayer: React.FC<DrawingLayerProps> = React.memo(
+	({ accentColor = "#000000" }) => {
+		const { isDrawing, currentPath, paths } = useDrawingStore();
 
-			{/* Render current path being drawn */}
-			{isDrawing && currentPath && <CurrentPath points={currentPath} />}
-		</g>
-	);
-});
+		return (
+			<g>
+				{/* Render completed paths */}
+				{paths.map((path) => (
+					<DrawnPath key={path.id} path={path} />
+				))}
+
+				{/* Render current path being drawn */}
+				{isDrawing && currentPath && (
+					<CurrentPath points={currentPath} color={accentColor} />
+				)}
+			</g>
+		);
+	},
+);

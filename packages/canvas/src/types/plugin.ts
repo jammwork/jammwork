@@ -105,6 +105,9 @@ export interface PluginAPI {
 	getLayerComponents(): React.ComponentType[];
 	getElements(): Map<string, Element>;
 
+	// Theme and styling
+	getAccentColor(): string;
+
 	// Element operations via events
 	createElement(element: Omit<Element, "id">): string;
 	updateElement(id: string, updates: Partial<Element>): void;

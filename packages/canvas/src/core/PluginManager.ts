@@ -95,6 +95,9 @@ export class PluginManager {
 			getLayerComponents: this.api.getLayerComponents.bind(this.api),
 			getElements: this.api.getElements.bind(this.api),
 
+			// Theme and styling
+			getAccentColor: this.api.getAccentColor.bind(this.api),
+
 			// Element operations
 			createElement: this.api.createElement.bind(this.api),
 			updateElement: this.api.updateElement.bind(this.api),
