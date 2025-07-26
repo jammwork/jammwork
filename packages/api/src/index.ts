@@ -13,5 +13,6 @@ export type {
 	PluginManagerConfig,
 	RenderContext,
 	ToolDefinition,
+	YjsDocumentManager,
 } from "./Plugin";
 export * from "./PluginAPIBase";

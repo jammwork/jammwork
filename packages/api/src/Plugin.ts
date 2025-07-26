@@ -1,3 +1,5 @@
+import type * as Y from "yjs";
+
 export interface Disposable {
 	dispose(): void;
 }
@@ -69,6 +71,13 @@ export interface ContextMenuItem {
 	onClick?(): void;
 }
 
+export interface YjsDocumentManager {
+	getDocument(documentId: string): Y.Doc;
+	createDocument(documentId: string): Y.Doc;
+	deleteDocument(documentId: string): void;
+	getProvider(documentId: string): unknown; // WebsocketProvider type not available in API package
+}
+
 export interface PluginAPI {
 	// Element management
 	registerElementType(type: string, renderer: ElementRenderer): Disposable;
@@ -120,6 +129,9 @@ export interface PluginAPI {
 	selectElement(id: string): void;
 	deselectElement(id: string): void;
 	clearSelection(): void;
+
+	// Yjs synchronization (optional - only available when enabled)
+	getYjsDocumentManager?(): YjsDocumentManager | undefined;
 }
 
 export interface Plugin {
