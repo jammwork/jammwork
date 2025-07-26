@@ -1,6 +1,7 @@
+import { ThemeProvider } from "@jammwork/ui";
 import { StrictMode } from "react";
-import { BrowserRouter } from "react-router-dom";
 import * as ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 
 const root = ReactDOM.createRoot(
@@ -9,8 +10,10 @@ const root = ReactDOM.createRoot(
 
 root.render(
 	<StrictMode>
-		<BrowserRouter>
-			<App />
-		</BrowserRouter>
+		<ThemeProvider>
+			<BrowserRouter>
+				<App />
+			</BrowserRouter>
+		</ThemeProvider>
 	</StrictMode>,
 );

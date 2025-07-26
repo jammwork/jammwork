@@ -37,6 +37,7 @@ export const CanvasRenderer = forwardRef<
 		const cursorStyle = useMemo(() => ({ cursor }), [cursor]);
 
 		return (
+			// biome-ignore lint/a11y/noSvgWithoutTitle: no title needed
 			<svg
 				ref={ref}
 				width={dimensions.width}
@@ -50,7 +51,6 @@ export const CanvasRenderer = forwardRef<
 				onMouseLeave={onMouseLeave}
 				onWheel={onWheel}
 			>
-				<title>Infinite Canvas</title>
 				<defs>
 					<pattern
 						id="dots"

@@ -12,3 +12,4 @@ export * from "./components/ui/sonner";
 export * from "./components/ui/tabs";
 
 export * from "./lib/utils";
+export * from "./ThemeProvider";
