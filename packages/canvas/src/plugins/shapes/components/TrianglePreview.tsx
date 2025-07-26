@@ -1,5 +1,5 @@
 import React from "react";
-import { useTriangleCreationStore } from "../stores/triangleStore";
+import { useShapeCreationStore } from "../stores/shapesStore";
 
 interface TrianglePreviewProps {
 	accentColor?: string;
@@ -8,10 +8,10 @@ interface TrianglePreviewProps {
 export const TrianglePreview: React.FC<TrianglePreviewProps> = ({
 	accentColor = "#3b82f6",
 }) => {
-	const { isCreating, startPosition, currentPosition } =
-		useTriangleCreationStore();
+	const { isCreating, shapeType, startPosition, currentPosition } =
+		useShapeCreationStore();
 
-	if (!isCreating || !startPosition || !currentPosition) {
+	if (!isCreating || shapeType !== "triangle" || !startPosition || !currentPosition) {
 		return null;
 	}
 

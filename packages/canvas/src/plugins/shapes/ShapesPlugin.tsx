@@ -12,9 +12,7 @@ import { createTriangleLayer } from "./layers/TriangleLayer";
 import { RectanglePreview } from "./components/RectanglePreview";
 import { CirclePreview } from "./components/CirclePreview";
 import { TrianglePreview } from "./components/TrianglePreview";
-import { useRectangleCreationStore } from "./stores/rectangleStore";
-import { useCircleCreationStore } from "./stores/circleStore";
-import { useTriangleCreationStore } from "./stores/triangleStore";
+import { useShapeCreationStore } from "./stores/shapesStore";
 
 export const ShapesPlugin: Plugin = {
 	id: "shapes-plugin",
@@ -108,15 +106,8 @@ export const ShapesPlugin: Plugin = {
 	},
 
 	deactivate: async () => {
-		// Clean up creation states
-		const { cancelCreating: cancelRectangle } =
-			useRectangleCreationStore.getState();
-		const { cancelCreating: cancelCircle } = useCircleCreationStore.getState();
-		const { cancelCreating: cancelTriangle } =
-			useTriangleCreationStore.getState();
-
-		cancelRectangle();
-		cancelCircle();
-		cancelTriangle();
+		// Clean up creation state
+		const { cancelCreating } = useShapeCreationStore.getState();
+		cancelCreating();
 	},
 };

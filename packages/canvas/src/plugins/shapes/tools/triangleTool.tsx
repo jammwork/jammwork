@@ -1,6 +1,6 @@
 import { Triangle } from "lucide-react";
 import type { PluginAPI, ToolDefinition } from "@jammwork/api";
-import { useTriangleCreationStore } from "../stores/triangleStore";
+import { useShapeCreationStore } from "../stores/shapesStore";
 
 export const createTriangleTool = (api: PluginAPI): ToolDefinition => ({
 	id: "triangle",
@@ -9,18 +9,18 @@ export const createTriangleTool = (api: PluginAPI): ToolDefinition => ({
 	cursor: "crosshair",
 
 	onActivate: () => {
-		const { cancelCreating } = useTriangleCreationStore.getState();
+		const { cancelCreating } = useShapeCreationStore.getState();
 		cancelCreating();
 	},
 
 	onMouseDown: (_event, position) => {
 		const canvasPosition = api.screenToCanvas(position);
-		const { startCreating } = useTriangleCreationStore.getState();
-		startCreating(canvasPosition);
+		const { startCreating } = useShapeCreationStore.getState();
+		startCreating("triangle", canvasPosition);
 	},
 
 	onMouseMove: (_event, position) => {
-		const { isCreating, updateCreating } = useTriangleCreationStore.getState();
+		const { isCreating, updateCreating } = useShapeCreationStore.getState();
 		if (isCreating) {
 			const canvasPosition = api.screenToCanvas(position);
 			updateCreating(canvasPosition);
@@ -29,7 +29,7 @@ export const createTriangleTool = (api: PluginAPI): ToolDefinition => ({
 
 	onMouseUp: (_event, _position) => {
 		const { isCreating, startPosition, currentPosition, endCreating } =
-			useTriangleCreationStore.getState();
+			useShapeCreationStore.getState();
 
 		if (isCreating && startPosition && currentPosition) {
 			const x = Math.min(startPosition.x, currentPosition.x);
@@ -68,7 +68,7 @@ export const createTriangleTool = (api: PluginAPI): ToolDefinition => ({
 
 	onKeyDown: (event) => {
 		if (event.key === "Escape") {
-			const { cancelCreating } = useTriangleCreationStore.getState();
+			const { cancelCreating } = useShapeCreationStore.getState();
 			cancelCreating();
 		}
 	},

@@ -1,5 +1,5 @@
 import React from "react";
-import { useRectangleCreationStore } from "../stores/rectangleStore";
+import { useShapeCreationStore } from "../stores/shapesStore";
 
 interface RectanglePreviewProps {
 	accentColor?: string;
@@ -8,10 +8,10 @@ interface RectanglePreviewProps {
 export const RectanglePreview: React.FC<RectanglePreviewProps> = ({
 	accentColor = "#3b82f6",
 }) => {
-	const { isCreating, startPosition, currentPosition } =
-		useRectangleCreationStore();
+	const { isCreating, shapeType, startPosition, currentPosition } =
+		useShapeCreationStore();
 
-	if (!isCreating || !startPosition || !currentPosition) {
+	if (!isCreating || shapeType !== "rectangle" || !startPosition || !currentPosition) {
 		return null;
 	}
 

@@ -1,6 +1,6 @@
 import { Circle } from "lucide-react";
 import type { PluginAPI, ToolDefinition } from "@jammwork/api";
-import { useCircleCreationStore } from "../stores/circleStore";
+import { useShapeCreationStore } from "../stores/shapesStore";
 
 export const createCircleTool = (api: PluginAPI): ToolDefinition => ({
 	id: "circle",
@@ -9,18 +9,18 @@ export const createCircleTool = (api: PluginAPI): ToolDefinition => ({
 	cursor: "crosshair",
 
 	onActivate: () => {
-		const { cancelCreating } = useCircleCreationStore.getState();
+		const { cancelCreating } = useShapeCreationStore.getState();
 		cancelCreating();
 	},
 
 	onMouseDown: (_event, position) => {
 		const canvasPosition = api.screenToCanvas(position);
-		const { startCreating } = useCircleCreationStore.getState();
-		startCreating(canvasPosition);
+		const { startCreating } = useShapeCreationStore.getState();
+		startCreating("circle", canvasPosition);
 	},
 
 	onMouseMove: (_event, position) => {
-		const { isCreating, updateCreating } = useCircleCreationStore.getState();
+		const { isCreating, updateCreating } = useShapeCreationStore.getState();
 		if (isCreating) {
 			const canvasPosition = api.screenToCanvas(position);
 			updateCreating(canvasPosition);
@@ -29,7 +29,7 @@ export const createCircleTool = (api: PluginAPI): ToolDefinition => ({
 
 	onMouseUp: (_event, _position) => {
 		const { isCreating, startPosition, currentPosition, endCreating } =
-			useCircleCreationStore.getState();
+			useShapeCreationStore.getState();
 
 		if (isCreating && startPosition && currentPosition) {
 			const centerX = startPosition.x;
@@ -67,7 +67,7 @@ export const createCircleTool = (api: PluginAPI): ToolDefinition => ({
 
 	onKeyDown: (event) => {
 		if (event.key === "Escape") {
-			const { cancelCreating } = useCircleCreationStore.getState();
+			const { cancelCreating } = useShapeCreationStore.getState();
 			cancelCreating();
 		}
 	},

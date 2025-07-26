@@ -1,6 +1,6 @@
 import { Square } from "lucide-react";
 import type { PluginAPI, ToolDefinition } from "@jammwork/api";
-import { useRectangleCreationStore } from "../stores/rectangleStore";
+import { useShapeCreationStore } from "../stores/shapesStore";
 
 export const createRectangleTool = (api: PluginAPI): ToolDefinition => ({
 	id: "rectangle",
@@ -9,18 +9,18 @@ export const createRectangleTool = (api: PluginAPI): ToolDefinition => ({
 	cursor: "crosshair",
 
 	onActivate: () => {
-		const { cancelCreating } = useRectangleCreationStore.getState();
+		const { cancelCreating } = useShapeCreationStore.getState();
 		cancelCreating();
 	},
 
 	onMouseDown: (_event, position) => {
 		const canvasPosition = api.screenToCanvas(position);
-		const { startCreating } = useRectangleCreationStore.getState();
-		startCreating(canvasPosition);
+		const { startCreating } = useShapeCreationStore.getState();
+		startCreating("rectangle", canvasPosition);
 	},
 
 	onMouseMove: (_event, position) => {
-		const { isCreating, updateCreating } = useRectangleCreationStore.getState();
+		const { isCreating, updateCreating } = useShapeCreationStore.getState();
 		if (isCreating) {
 			const canvasPosition = api.screenToCanvas(position);
 			updateCreating(canvasPosition);
@@ -29,7 +29,7 @@ export const createRectangleTool = (api: PluginAPI): ToolDefinition => ({
 
 	onMouseUp: (_event, _position) => {
 		const { isCreating, startPosition, currentPosition, endCreating } =
-			useRectangleCreationStore.getState();
+			useShapeCreationStore.getState();
 
 		if (isCreating && startPosition && currentPosition) {
 			const x = Math.min(startPosition.x, currentPosition.x);
@@ -61,7 +61,7 @@ export const createRectangleTool = (api: PluginAPI): ToolDefinition => ({
 
 	onKeyDown: (event) => {
 		if (event.key === "Escape") {
-			const { cancelCreating } = useRectangleCreationStore.getState();
+			const { cancelCreating } = useShapeCreationStore.getState();
 			cancelCreating();
 		}
 	},

@@ -1,5 +1,5 @@
 import React from "react";
-import { useCircleCreationStore } from "../stores/circleStore";
+import { useShapeCreationStore } from "../stores/shapesStore";
 
 interface CirclePreviewProps {
 	accentColor?: string;
@@ -8,10 +8,10 @@ interface CirclePreviewProps {
 export const CirclePreview: React.FC<CirclePreviewProps> = ({
 	accentColor = "#3b82f6",
 }) => {
-	const { isCreating, startPosition, currentPosition } =
-		useCircleCreationStore();
+	const { isCreating, shapeType, startPosition, currentPosition } =
+		useShapeCreationStore();
 
-	if (!isCreating || !startPosition || !currentPosition) {
+	if (!isCreating || shapeType !== "circle" || !startPosition || !currentPosition) {
 		return null;
 	}
 
