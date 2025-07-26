@@ -10,6 +10,7 @@ interface UseCanvasEventsProps {
 	updateDrag: (position: { x: number; y: number }) => void;
 	endDrag: () => void;
 	zoomAt: (deltaZoom: number, centerX: number, centerY: number) => void;
+	updateCursorPosition?: (x: number, y: number) => void;
 }
 
 export const useCanvasEvents = ({
@@ -19,6 +20,7 @@ export const useCanvasEvents = ({
 	updateDrag,
 	endDrag,
 	zoomAt,
+	updateCursorPosition,
 }: UseCanvasEventsProps) => {
 	const selectTool = createSelectTool(pluginApi);
 	// Keyboard shortcuts for tools
@@ -136,6 +138,12 @@ export const useCanvasEvents = ({
 				y: e.clientY - rect.top,
 			};
 
+			// Update cursor position for collaborative cursors
+			if (updateCursorPosition) {
+				const canvasPosition = pluginApi.screenToCanvas(screenPosition);
+				updateCursorPosition(canvasPosition.x, canvasPosition.y);
+			}
+
 			// If space panning is active, handle panning
 			if (toolState.isSpacePanning) {
 				updateDrag({ x: e.clientX, y: e.clientY });
@@ -156,7 +164,7 @@ export const useCanvasEvents = ({
 				updateDrag({ x: e.clientX, y: e.clientY });
 			}
 		},
-		[updateDrag, pluginApi, svgRef, selectTool],
+		[updateDrag, pluginApi, svgRef, selectTool, updateCursorPosition],
 	);
 
 	const handleMouseUp = useCallback(

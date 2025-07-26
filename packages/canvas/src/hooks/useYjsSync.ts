@@ -18,6 +18,7 @@ interface YjsSyncResult {
 	documentManager: YjsDocumentManager;
 	isConnected: boolean;
 	awareness: Awareness | undefined;
+	updateCursorPosition: (x: number, y: number) => void;
 }
 
 export const useYjsSync = ({
@@ -49,6 +50,7 @@ export const useYjsSync = ({
 			id: userId,
 			name: `User ${userId}`,
 			color: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`,
+			cursor: { x: 0, y: 0 },
 		});
 
 		// Add connection event logging for debugging
@@ -66,10 +68,43 @@ export const useYjsSync = ({
 			console.log("Yjs provider connection error:", event);
 		});
 
+		// Handle page unload/reload to clean up awareness
+		const handleBeforeUnload = () => {
+			// Clear the user's awareness state before leaving
+			provider.awareness.setLocalState(null);
+		};
+
+		const handleVisibilityChange = () => {
+			if (document.visibilityState === 'hidden') {
+				// Clear awareness when tab becomes hidden (helps with tab switches)
+				provider.awareness.setLocalState(null);
+			} else if (document.visibilityState === 'visible') {
+				// Restore awareness when tab becomes visible again
+				provider.awareness.setLocalStateField("user", {
+					id: userId,
+					name: `User ${userId}`,
+					color: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`,
+					cursor: { x: 0, y: 0 },
+				});
+			}
+		};
+
+		// Add event listeners for cleanup
+		window.addEventListener('beforeunload', handleBeforeUnload);
+		window.addEventListener('unload', handleBeforeUnload);
+		document.addEventListener('visibilitychange', handleVisibilityChange);
+
 		mainDocRef.current = doc;
 		mainProviderRef.current = provider;
 
 		return () => {
+			// Remove event listeners
+			window.removeEventListener('beforeunload', handleBeforeUnload);
+			window.removeEventListener('unload', handleBeforeUnload);
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
+			
+			// Clear awareness state before destroying
+			provider.awareness.setLocalState(null);
 			provider.destroy();
 			doc.destroy();
 		};
@@ -253,11 +288,24 @@ export const useYjsSync = ({
 		};
 	}, []);
 
+	const updateCursorPosition = useCallback((x: number, y: number) => {
+		if (mainProviderRef.current?.awareness) {
+			const currentUser = mainProviderRef.current.awareness.getLocalState()?.user;
+			if (currentUser) {
+				mainProviderRef.current.awareness.setLocalStateField("user", {
+					...currentUser,
+					cursor: { x, y },
+				});
+			}
+		}
+	}, []);
+
 	return {
 		mainDocument: mainDocRef.current,
 		mainProvider: mainProviderRef.current,
 		documentManager,
 		isConnected: mainProviderRef.current?.wsconnected ?? false,
 		awareness: mainProviderRef.current?.awareness,
+		updateCursorPosition,
 	};
 };

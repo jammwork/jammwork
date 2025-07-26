@@ -2,6 +2,7 @@ import type { Plugin } from "@jammwork/api";
 import { useEffect, useMemo, useRef } from "react";
 import { CanvasOverlay } from "./components/CanvasOverlay";
 import { CanvasRenderer } from "./components/CanvasRenderer";
+import { UserCursorsLayer } from "./components/UserCursorsLayer";
 import { useCanvasEvents } from "./hooks/useCanvasEvents";
 import { usePluginSystem } from "./hooks/usePluginSystem";
 import { useViewport } from "./hooks/useViewport";
@@ -71,6 +72,7 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 		updateDrag,
 		endDrag,
 		zoomAt,
+		updateCursorPosition: yjsSync.updateCursorPosition,
 	});
 
 	// Zoom prevention setup
@@ -78,6 +80,23 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 
 	// Memoize container style
 	const containerStyle = useMemo(() => ({ touchAction: "none" as const }), []);
+
+	// Combine plugin layers with user cursors layer
+	const allLayerComponents = useMemo(() => {
+		const layers = [...layerComponents];
+		
+		// Add UserCursorsLayer if we have Yjs sync enabled
+		if (yjsSync.awareness && userId) {
+			layers.push(() => (
+				<UserCursorsLayer 
+					awareness={yjsSync.awareness} 
+					currentUserId={userId} 
+				/>
+			));
+		}
+		
+		return layers;
+	}, [layerComponents, yjsSync.awareness, userId]);
 
 	return (
 		<div
@@ -89,7 +108,7 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 				dimensions={dimensions}
 				viewBoxString={getViewBoxString()}
 				cursor={getCursor}
-				layerComponents={layerComponents}
+				layerComponents={allLayerComponents}
 				onMouseDown={handleMouseDown}
 				onMouseMove={handleMouseMove}
 				onMouseUp={handleMouseUp}
