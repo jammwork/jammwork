@@ -167,15 +167,9 @@ export const useYjsSync = ({
 		};
 
 		const handleSelectionChange = () => {
-			const remoteSelection = selectionArray.toArray() as string[];
-			const localSelection = pluginApiRef.current!.getSelectedElements();
-
-			if (JSON.stringify(remoteSelection) !== JSON.stringify(localSelection)) {
-				pluginApiRef.current!.clearSelection();
-				remoteSelection.forEach((id) =>
-					pluginApiRef.current!.selectElement(id),
-				);
-			}
+			// Disable selection sync entirely to prevent interference with local selection
+			// TODO: Implement proper collaborative selection sync that doesn't interfere with local UX
+			return;
 		};
 
 		elementsMap.observe(handleElementsChange);
