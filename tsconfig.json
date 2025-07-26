@@ -1,13 +1,16 @@
 {
-	"extends": "./tsconfig.base.json",
-	"compileOnSave": false,
-	"files": [],
-	"references": [
-		{
-			"path": "./apps/web"
-		},
-		{
-			"path": "./packages/canvas"
-		}
-	]
+  "extends": "./tsconfig.base.json",
+  "compileOnSave": false,
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/web"
+    },
+    {
+      "path": "./packages/canvas"
+    },
+    {
+      "path": "./packages/ui"
+    }
+  ]
 }
