@@ -26,11 +26,21 @@ Create a new directory in `src/plugins/your-plugin-name/`:
 src/plugins/your-plugin-name/
 ├── index.ts              # Main plugin export
 ├── YourPlugin.tsx        # Plugin definition
-├── store.ts             # Plugin-specific state (optional)
+├── tools/               # Tool definitions (for complex plugins)
+│   ├── tool1.ts         # Individual tool logic
+│   └── tool2.ts         # Individual tool logic
+├── renderers/           # Element renderers (for shape plugins)
+│   ├── Renderer1.tsx    # SVG renderer components
+│   └── Renderer2.tsx    # SVG renderer components
+├── layers/              # Layer components
+│   └── YourLayer.tsx    # Canvas layer component factory
+├── stores/              # State management
+│   └── store.ts         # Plugin-specific state
+├── components/          # UI components
+│   ├── YourPreview.tsx  # Preview components
+│   └── YourLayer.tsx    # Canvas layer component
 ├── types.ts             # Plugin types (optional)
-├── constants.ts         # Plugin constants (optional)
-└── components/          # Plugin UI components
-    └── YourLayer.tsx    # Canvas layer component
+└── constants.ts         # Plugin constants (optional)
 ```
 
 ### 2. Basic Plugin Implementation
@@ -38,7 +48,7 @@ src/plugins/your-plugin-name/
 ```typescript
 // src/plugins/your-plugin-name/YourPlugin.tsx
 import React from "react";
-import type { Plugin, ToolDefinition, PluginAPI } from "../../types/plugin";
+import type { Plugin, ToolDefinition, PluginAPI } from "../../plugin";
 import { YourLayer } from "./components/YourLayer";
 
 const createYourTool = (api: PluginAPI): ToolDefinition => ({
@@ -183,15 +193,82 @@ export { YourLayer } from "./components/YourLayer";
 export { useYourPluginStore } from "./store";
 ```
 
+## Secondary Toolbars
+
+Secondary toolbars allow you to create tools that reveal additional tools when selected. This is useful for grouping related tools together, like shape tools.
+
+### Creating Tools with Secondary Toolbars
+
+The new API provides a clean way to register tools with secondary toolbars using the `registerTool` method with an options parameter:
+
+```typescript
+// Create individual tools
+const rectangleTool: ToolDefinition = {
+  id: "rectangle",
+  name: "Rectangle",
+  icon: <Square size={16} />,
+  cursor: "crosshair",
+  // ... tool implementation
+};
+
+const circleTool: ToolDefinition = {
+  id: "circle", 
+  name: "Circle",
+  icon: <Circle size={16} />,
+  cursor: "crosshair",
+  // ... tool implementation
+};
+
+const triangleTool: ToolDefinition = {
+  id: "triangle",
+  name: "Triangle",
+  icon: <Triangle size={16} />,
+  cursor: "crosshair",
+  // ... tool implementation
+};
+
+// Register the main tool with secondary tools using the new API
+api.registerTool(
+  {
+    id: "shapes",
+    name: "Shapes",
+    icon: <Square size={16} />,
+    cursor: "crosshair",
+    // Default to first tool's behavior when shapes is selected
+    onActivate: rectangleTool.onActivate,
+    onDeactivate: rectangleTool.onDeactivate,
+    onMouseDown: rectangleTool.onMouseDown,
+    onMouseMove: rectangleTool.onMouseMove,
+    onMouseUp: rectangleTool.onMouseUp,
+    onKeyDown: rectangleTool.onKeyDown,
+  },
+  {
+    secondary: [rectangleTool, circleTool, triangleTool],
+  },
+);
+```
+
+### Secondary Toolbar Behavior
+
+- When the main tool is selected, a secondary toolbar appears above the main toolbar
+- Users can select individual tools from the secondary toolbar
+- The secondary toolbar remains visible when any secondary tool is active
+- The main tool stays highlighted when secondary tools are selected, maintaining visual hierarchy
+- Each secondary tool maintains its own behavior and state
+- All tools (main and secondary) are automatically registered and managed by the API
+
 ## Plugin API Reference
 
 ### Core Methods
 
 #### Tool Registration
 ```typescript
-api.registerTool(tool: ToolDefinition): Disposable
+api.registerTool(
+  tool: ToolDefinition, 
+  options?: { secondary?: ToolDefinition[] }
+): Disposable
 ```
-Register a custom tool that appears in the toolbar.
+Register a custom tool that appears in the toolbar. The `options` parameter allows you to specify secondary tools that will appear in a secondary toolbar when this tool is active.
 
 #### UI Components
 ```typescript
@@ -221,6 +298,29 @@ api.selectElement(id: string): void
 api.deselectElement(id: string): void
 api.clearSelection(): void
 ```
+
+#### Element Type Registration
+```typescript
+api.registerElementType(type: string, renderer: ElementRenderer): Disposable
+```
+
+#### Theme and Styling
+```typescript
+api.getAccentColor(): string
+```
+
+#### Registry Access
+```typescript
+api.getRegisteredTools(): Map<string, ToolDefinition>
+api.getMainTools(): Map<string, ToolDefinition>
+api.getSecondaryTools(mainToolId: string): ToolDefinition[]
+api.getLayerComponents(): React.ComponentType[]
+api.getElements(): Map<string, Element>
+```
+
+**New Methods for Secondary Toolbar Support:**
+- `getMainTools()`: Returns only the main tools that appear in the primary toolbar
+- `getSecondaryTools(mainToolId)`: Returns the secondary tools associated with a main tool
 
 #### Event System
 ```typescript
@@ -290,7 +390,7 @@ Here's a complete example of a text plugin:
 // src/plugins/text/TextPlugin.tsx
 import React from "react";
 import { Type } from "lucide-react";
-import type { Plugin, ToolDefinition, PluginAPI } from "../../types/plugin";
+import type { Plugin, ToolDefinition, PluginAPI } from "../../plugin";
 import { TextLayer } from "./components/TextLayer";
 import { useTextStore } from "./store";
 
@@ -424,5 +524,132 @@ api.updateElement(elementId, { x: 150 });
 // Select elements
 api.selectElement(elementId);
 ```
+
+## Modular Plugin Development
+
+For complex plugins with multiple tools or shapes, consider using a modular structure:
+
+### Tool Separation
+```typescript
+// src/plugins/shapes/tools/rectangleTool.ts
+import { Square } from "lucide-react";
+import type { PluginAPI, ToolDefinition } from "../../../plugin";
+
+export const createRectangleTool = (api: PluginAPI): ToolDefinition => ({
+  id: "rectangle",
+  name: "Rectangle", 
+  icon: <Square size={16} />,
+  cursor: "crosshair",
+  // Tool implementation...
+});
+```
+
+### Complete Plugin Example with Secondary Toolbar
+
+Here's how the shapes plugin uses the new API structure:
+
+```typescript
+// src/plugins/shapes/ShapesPlugin.tsx
+import React from "react";
+import { Square } from "lucide-react";
+import type { Plugin, PluginAPI } from "../../plugin";
+import { createRectangleTool } from "./tools/rectangleTool";
+import { createCircleTool } from "./tools/circleTool";
+import { createTriangleTool } from "./tools/triangleTool";
+
+export const ShapesPlugin: Plugin = {
+  id: "shapes-plugin",
+  name: "Shapes Plugin",
+  version: "1.0.0",
+  description: "Adds rectangle, circle, and triangle creation functionality",
+
+  activate: async (api: PluginAPI) => {
+    // Create individual tools
+    const rectangleTool = createRectangleTool(api);
+    const circleTool = createCircleTool(api);
+    const triangleTool = createTriangleTool(api);
+
+    // Register the main shapes tool with secondary tools
+    api.registerTool(
+      {
+        id: "shapes",
+        name: "Shapes",
+        icon: <Square size={16} />,
+        cursor: "crosshair",
+        // Default to rectangle tool behavior when shapes is selected
+        onActivate: rectangleTool.onActivate,
+        onDeactivate: rectangleTool.onDeactivate,
+        onMouseDown: rectangleTool.onMouseDown,
+        onMouseMove: rectangleTool.onMouseMove,
+        onMouseUp: rectangleTool.onMouseUp,
+        onKeyDown: rectangleTool.onKeyDown,
+      },
+      {
+        secondary: [rectangleTool, circleTool, triangleTool],
+      },
+    );
+
+    // Register element types and other components...
+  },
+
+  deactivate: async () => {
+    // Cleanup logic...
+  },
+};
+```
+
+### Renderer Separation
+```typescript
+// src/plugins/shapes/renderers/RectangleRenderer.tsx
+import type React from "react";
+import type { Element } from "../../../plugin";
+
+export const RectangleRenderer: React.FC<{ element: Element }> = ({ element }) => {
+  const { x, y, width, height, properties } = element;
+  
+  return (
+    <rect
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      fill={properties.fill as string}
+      stroke={properties.stroke as string}
+      strokeWidth={properties.strokeWidth as number}
+    />
+  );
+};
+```
+
+### Layer Factory Pattern
+```typescript
+// src/plugins/shapes/layers/RectangleLayer.tsx
+import type React from "react";
+import type { Element, PluginAPI } from "../../../plugin";
+import { RectangleRenderer } from "../renderers/RectangleRenderer";
+
+export const createRectangleLayer = (api: PluginAPI): React.FC => () => {
+  const elements = api.getElements();
+  const rectangles = Array.from(elements.values()).filter(
+    (element): element is Element => element.type === "rectangle",
+  );
+
+  return (
+    <g className="rectangles-layer">
+      {rectangles.map((element) => (
+        <RectangleRenderer key={element.id} element={element} />
+      ))}
+    </g>
+  );
+};
+```
+
+### Benefits of Modular Structure
+
+1. **Maintainability**: Easy to find and modify specific functionality
+2. **Reusability**: Components can be used in other plugins
+3. **Testing**: Individual components can be tested in isolation
+4. **Collaboration**: Multiple developers can work on different parts
+5. **Code Organization**: Logical separation of concerns
 
 This guide should help you create powerful and well-integrated plugins for the Infinite Canvas system!
