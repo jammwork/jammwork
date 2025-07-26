@@ -32,6 +32,9 @@
 	"include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"],
 	"references": [
 		{
+			"path": "../../packages/ui/tsconfig.lib.json"
+		},
+		{
 			"path": "../../packages/canvas/tsconfig.lib.json"
 		}
 	]

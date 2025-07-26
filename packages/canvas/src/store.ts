@@ -73,7 +73,10 @@ interface CanvasActions {
 	setSpacePanning: (panning: boolean) => void;
 
 	// Element management
-	createElement: (element: Omit<Element, "id">) => string;
+	createElement: (element: Omit<Element, "id">) => {
+		id: string;
+		element: Element;
+	};
 	updateElement: (id: string, updates: Partial<Element>) => void;
 	deleteElement: (id: string) => void;
 	getElementById: (id: string) => Element | undefined;
@@ -245,7 +248,8 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 			return { elements: newElements };
 		});
 
-		return id;
+		// Return both id and element to avoid timing issues
+		return { id, element };
 	},
 
 	updateElement: (id, updates) =>

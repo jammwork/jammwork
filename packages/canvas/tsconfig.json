@@ -8,15 +8,15 @@
 		}
 	},
 	"references": [
-    {
-      "path": "../ui"
-    },
-    {
-      "path": "../api"
-    },
-    {
-      "path": "./tsconfig.lib.json"
-    }
-  ],
+		{
+			"path": "../ui"
+		},
+		{
+			"path": "../api"
+		},
+		{
+			"path": "./tsconfig.lib.json"
+		}
+	],
 	"extends": "../../tsconfig.base.json"
 }

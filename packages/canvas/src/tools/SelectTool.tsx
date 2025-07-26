@@ -1,4 +1,4 @@
-import type { ToolDefinition } from "@jammwork/api";
+import type { ToolDefinition, PluginAPI } from "@jammwork/api";
 import { MousePointer } from "lucide-react";
 import { useCanvasStore } from "@/store";
 import {
@@ -8,7 +8,7 @@ import {
 	getSelectionBoxBounds,
 } from "../hitTesting";
 
-export const createSelectTool = (): ToolDefinition => {
+export const createSelectTool = (api: PluginAPI): ToolDefinition => {
 	return {
 		id: "select",
 		name: "Select",
@@ -29,8 +29,6 @@ export const createSelectTool = (): ToolDefinition => {
 			const {
 				elements,
 				selectionState,
-				selectElement,
-				clearSelection,
 				startSelectionBox,
 				startElementDrag,
 				startResize,
@@ -69,12 +67,12 @@ export const createSelectTool = (): ToolDefinition => {
 					startElementDrag(clickedElement.id, offset);
 				} else {
 					// Select the element
-					selectElement(clickedElement.id, isMultiSelect);
+					api.selectElement(clickedElement.id);
 				}
 			} else {
 				// Click on empty space - start selection box or clear selection
 				if (!isMultiSelect) {
-					clearSelection();
+					api.clearSelection();
 				}
 				startSelectionBox(canvasPosition);
 			}
@@ -120,7 +118,6 @@ export const createSelectTool = (): ToolDefinition => {
 				endSelectionBox,
 				endElementDrag,
 				endResize,
-				selectElement,
 			} = state;
 
 			// Handle selection box completion
@@ -143,12 +140,12 @@ export const createSelectTool = (): ToolDefinition => {
 
 					if (!isMultiSelect) {
 						// Clear existing selection first
-						useCanvasStore.getState().clearSelection();
+						api.clearSelection();
 					}
 
 					// Select all elements in bounds
 					for (const element of elementsInBounds) {
-						selectElement(element.id, true);
+						api.selectElement(element.id);
 					}
 				}
 
@@ -157,10 +154,26 @@ export const createSelectTool = (): ToolDefinition => {
 
 			// End other operations
 			if (selectionState.draggedElement) {
+				// Emit element:updated events for all moved elements before ending drag
+				for (const elementId of selectionState.selectedElements) {
+					const element = elements.get(elementId);
+					if (element) {
+						api.emit("element:updated", { id: elementId, element, changes: { x: element.x, y: element.y } });
+					}
+				}
 				endElementDrag();
 			}
 
 			if (selectionState.resizeHandle) {
+				// Emit element:updated event for the resized element
+				const element = elements.get(selectionState.resizeHandle.elementId);
+				if (element) {
+					api.emit("element:updated", { 
+						id: element.id, 
+						element, 
+						changes: { x: element.x, y: element.y, width: element.width, height: element.height } 
+					});
+				}
 				endResize();
 			}
 		},
@@ -173,13 +186,13 @@ export const createSelectTool = (): ToolDefinition => {
 				case "Backspace":
 					// Delete selected elements
 					for (const selectedId of state.selectionState.selectedElements) {
-						state.deleteElement(selectedId);
+						api.deleteElement(selectedId);
 					}
 					break;
 
 				case "Escape":
 					// Clear selection and cancel ongoing operations
-					state.clearSelection();
+					api.clearSelection();
 					state.endSelectionBox();
 					state.endElementDrag();
 					state.endResize();
@@ -189,9 +202,9 @@ export const createSelectTool = (): ToolDefinition => {
 					if (event.ctrlKey || event.metaKey) {
 						// Select all elements
 						event.preventDefault();
-						state.clearSelection();
+						api.clearSelection();
 						for (const elementId of state.elements.keys()) {
-							state.selectElement(elementId, true);
+							api.selectElement(elementId);
 						}
 					}
 					break;

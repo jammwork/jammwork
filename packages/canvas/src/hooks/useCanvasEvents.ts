@@ -20,7 +20,7 @@ export const useCanvasEvents = ({
 	endDrag,
 	zoomAt,
 }: UseCanvasEventsProps) => {
-	const selectTool = createSelectTool();
+	const selectTool = createSelectTool(pluginApi);
 	// Keyboard shortcuts for tools
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
