@@ -1,7 +1,7 @@
 {
   "recommendations": [
-    
+    "biomejs.biome",
     "nrwl.angular-console",
-    "esbenp.prettier-vscode"
+    "bradlc.vscode-tailwindcss"
   ]
 }
