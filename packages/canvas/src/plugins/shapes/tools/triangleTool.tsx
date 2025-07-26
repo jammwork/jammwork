@@ -5,7 +5,7 @@ import { useTriangleCreationStore } from "../stores/triangleStore";
 export const createTriangleTool = (api: PluginAPI): ToolDefinition => ({
 	id: "triangle",
 	name: "Triangle",
-	icon: Triangle({ size: 16 }),
+	icon: <Triangle size={16} />,
 	cursor: "crosshair",
 
 	onActivate: () => {

@@ -1,10 +1,6 @@
+import React from "react";
 import { Square } from "lucide-react";
-import type {
-	Plugin,
-	PluginAPI,
-	ToolDefinition,
-	SecondaryToolbarDefinition,
-} from "../../plugin";
+import type { Plugin, PluginAPI } from "../../plugin";
 import { createRectangleTool } from "./tools/rectangleTool";
 import { createCircleTool } from "./tools/circleTool";
 import { createTriangleTool } from "./tools/triangleTool";
@@ -33,35 +29,25 @@ export const ShapesPlugin: Plugin = {
 		const circleTool = createCircleTool(api);
 		const triangleTool = createTriangleTool(api);
 
-		// Create secondary toolbar for shapes
-		const shapesSecondaryToolbar: SecondaryToolbarDefinition = {
-			id: "shapes-secondary",
-			tools: [rectangleTool, circleTool, triangleTool],
-		};
-
-		// Create main shapes tool with secondary toolbar
-		const mainShapesTool: ToolDefinition = {
-			id: "shapes",
-			name: "Shapes",
-			icon: <Square size={16} />,
-			cursor: "crosshair",
-			secondaryToolbar: shapesSecondaryToolbar,
-			// Default to rectangle tool behavior when shapes is selected
-			onActivate: rectangleTool.onActivate,
-			onDeactivate: rectangleTool.onDeactivate,
-			onMouseDown: rectangleTool.onMouseDown,
-			onMouseMove: rectangleTool.onMouseMove,
-			onMouseUp: rectangleTool.onMouseUp,
-			onKeyDown: rectangleTool.onKeyDown,
-		};
-
-		// Register the main shapes tool
-		api.registerTool(mainShapesTool);
-
-		// Register individual shape tools for secondary toolbar
-		api.registerTool(rectangleTool);
-		api.registerTool(circleTool);
-		api.registerTool(triangleTool);
+		// Register the main shapes tool with secondary tools
+		api.registerTool(
+			{
+				id: "shapes",
+				name: "Shapes",
+				icon: <Square size={16} />,
+				cursor: "crosshair",
+				// Default to rectangle tool behavior when shapes is selected
+				onActivate: rectangleTool.onActivate,
+				onDeactivate: rectangleTool.onDeactivate,
+				onMouseDown: rectangleTool.onMouseDown,
+				onMouseMove: rectangleTool.onMouseMove,
+				onMouseUp: rectangleTool.onMouseUp,
+				onKeyDown: rectangleTool.onKeyDown,
+			},
+			{
+				secondary: [rectangleTool, circleTool, triangleTool],
+			},
+		);
 
 		// Register element types
 		api.registerElementType("rectangle", {

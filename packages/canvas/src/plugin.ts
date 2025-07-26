@@ -72,7 +72,10 @@ export interface ContextMenuItem {
 export interface PluginAPI {
 	// Element management
 	registerElementType(type: string, renderer: ElementRenderer): Disposable;
-	registerTool(tool: ToolDefinition): Disposable;
+	registerTool(
+		tool: ToolDefinition,
+		options?: { secondary?: ToolDefinition[] },
+	): Disposable;
 
 	// Event bus system
 	on<T extends PluginEvent>(
@@ -102,6 +105,8 @@ export interface PluginAPI {
 
 	// Registry access methods
 	getRegisteredTools(): Map<string, ToolDefinition>;
+	getMainTools(): Map<string, ToolDefinition>;
+	getSecondaryTools(mainToolId: string): ToolDefinition[];
 	getLayerComponents(): React.ComponentType[];
 	getElements(): Map<string, Element>;
 

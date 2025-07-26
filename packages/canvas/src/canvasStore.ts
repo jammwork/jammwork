@@ -288,8 +288,8 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 			const selectedElements = multi
 				? state.selectionState.selectedElements.includes(id)
 					? state.selectionState.selectedElements.filter(
-						(selectedId) => selectedId !== id,
-					)
+							(selectedId) => selectedId !== id,
+						)
 					: [...state.selectionState.selectedElements, id]
 				: [id];
 
@@ -395,11 +395,39 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 			for (const elementId of selectedElements) {
 				const element = state.elements.get(elementId);
 				if (element) {
-					newElements.set(elementId, {
+					const updatedElement = {
 						...element,
 						x: element.x + deltaX,
 						y: element.y + deltaY,
-					});
+					};
+
+					// Handle special properties for different element types
+					if (element.type === "circle") {
+						// Update circle center coordinates
+						const centerX = element.properties.centerX as number;
+						const centerY = element.properties.centerY as number;
+						updatedElement.properties = {
+							...element.properties,
+							centerX: centerX + deltaX,
+							centerY: centerY + deltaY,
+						};
+					} else if (element.type === "triangle") {
+						// Update triangle points
+						const points = element.properties.points as string;
+						const pointsArray = points.split(" ");
+						const updatedPoints = pointsArray
+							.map((point) => {
+								const [x, y] = point.split(",").map(Number);
+								return `${x + deltaX},${y + deltaY}`;
+							})
+							.join(" ");
+						updatedElement.properties = {
+							...element.properties,
+							points: updatedPoints,
+						};
+					}
+
+					newElements.set(elementId, updatedElement);
 				}
 			}
 
@@ -420,18 +448,40 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 			const element = state.elements.get(elementId);
 			if (!element) return state;
 
+			// Get bounds based on element type
+			let originalBounds;
+			if (element.type === "circle") {
+				// Use radiusX/radiusY if available, fallback to radius for backwards compatibility
+				const radiusX =
+					(element.properties.radiusX as number) ||
+					(element.properties.radius as number);
+				const radiusY =
+					(element.properties.radiusY as number) ||
+					(element.properties.radius as number);
+				const centerX = element.properties.centerX as number;
+				const centerY = element.properties.centerY as number;
+				originalBounds = {
+					x: centerX - radiusX,
+					y: centerY - radiusY,
+					width: radiusX * 2,
+					height: radiusY * 2,
+				};
+			} else {
+				originalBounds = {
+					x: element.x,
+					y: element.y,
+					width: element.width,
+					height: element.height,
+				};
+			}
+
 			return {
 				selectionState: {
 					...state.selectionState,
 					resizeHandle: {
 						elementId,
 						handle,
-						originalBounds: {
-							x: element.x,
-							y: element.y,
-							width: element.width,
-							height: element.height,
-						},
+						originalBounds,
 					},
 				},
 			};
@@ -505,13 +555,61 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 			}
 
 			const newElements = new Map(state.elements);
-			newElements.set(resizeHandle.elementId, {
-				...element,
-				x: newBounds.x,
-				y: newBounds.y,
-				width: newBounds.width,
-				height: newBounds.height,
-			});
+
+			// Handle different element types during resize
+			if (element.type === "circle") {
+				// For circles/ellipses, allow independent width and height scaling
+				const newCenterX = newBounds.x + newBounds.width / 2;
+				const newCenterY = newBounds.y + newBounds.height / 2;
+				const radiusX = newBounds.width / 2;
+				const radiusY = newBounds.height / 2;
+
+				newElements.set(resizeHandle.elementId, {
+					...element,
+					x: newBounds.x,
+					y: newBounds.y,
+					width: newBounds.width,
+					height: newBounds.height,
+					properties: {
+						...element.properties,
+						centerX: newCenterX,
+						centerY: newCenterY,
+						radiusX: radiusX,
+						radiusY: radiusY,
+						// Keep backwards compatibility with old radius property
+						radius: Math.min(radiusX, radiusY),
+					},
+				});
+			} else if (element.type === "triangle") {
+				// For triangles, update points based on new bounds
+				const centerX = newBounds.x + newBounds.width / 2;
+				const topY = newBounds.y;
+				const bottomY = newBounds.y + newBounds.height;
+				const leftX = newBounds.x;
+				const rightX = newBounds.x + newBounds.width;
+				const newPoints = `${centerX},${topY} ${leftX},${bottomY} ${rightX},${bottomY}`;
+
+				newElements.set(resizeHandle.elementId, {
+					...element,
+					x: newBounds.x,
+					y: newBounds.y,
+					width: newBounds.width,
+					height: newBounds.height,
+					properties: {
+						...element.properties,
+						points: newPoints,
+					},
+				});
+			} else {
+				// Default behavior for rectangles and other shapes
+				newElements.set(resizeHandle.elementId, {
+					...element,
+					x: newBounds.x,
+					y: newBounds.y,
+					width: newBounds.width,
+					height: newBounds.height,
+				});
+			}
 
 			return { elements: newElements };
 		}),

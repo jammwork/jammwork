@@ -5,7 +5,7 @@ import { useCircleCreationStore } from "../stores/circleStore";
 export const createCircleTool = (api: PluginAPI): ToolDefinition => ({
 	id: "circle",
 	name: "Circle",
-	icon: Circle({ size: 16 }),
+	icon: <Circle size={16} />,
 	cursor: "crosshair",
 
 	onActivate: () => {

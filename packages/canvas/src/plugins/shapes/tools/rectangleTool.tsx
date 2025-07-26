@@ -5,7 +5,7 @@ import { useRectangleCreationStore } from "../stores/rectangleStore";
 export const createRectangleTool = (api: PluginAPI): ToolDefinition => ({
 	id: "rectangle",
 	name: "Rectangle",
-	icon: Square({ size: 16 }),
+	icon: <Square size={16} />,
 	cursor: "crosshair",
 
 	onActivate: () => {

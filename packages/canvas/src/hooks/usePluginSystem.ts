@@ -3,7 +3,7 @@ import { PluginManager } from "../core/PluginManager";
 import { PluginAPIImpl } from "../core/PluginAPI";
 import { EventBus } from "../core/EventBus";
 import { DrawingPlugin } from "../plugins/drawing";
-import { RectanglePlugin } from "../plugins/shapes/RectanglePlugin";
+import { ShapesPlugin } from "../plugins/shapes";
 import type { Plugin } from "../plugin";
 
 interface UsePluginSystemProps {
@@ -42,7 +42,7 @@ export const usePluginSystem = ({
 	}, [pluginsLoaded, stableApi]);
 
 	// Memoize built-in plugins to prevent recreating array on every render
-	const builtInPlugins = useMemo(() => [DrawingPlugin, RectanglePlugin], []);
+	const builtInPlugins = useMemo(() => [DrawingPlugin, ShapesPlugin], []);
 
 	// Load plugins when they change
 	useEffect(() => {

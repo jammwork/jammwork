@@ -16,6 +16,8 @@ export class PluginAPIImpl implements PluginAPI {
 	private eventBus: EventBus;
 	private elementRenderers = new Map<string, ElementRenderer>();
 	private tools = new Map<string, ToolDefinition>();
+	private mainTools = new Map<string, ToolDefinition>();
+	private secondaryToolsMap = new Map<string, ToolDefinition[]>(); // main tool id -> secondary tools
 	private toolbarComponents: React.ComponentType[] = [];
 	private contextMenuItems: ContextMenuItem[] = [];
 	private layerComponents: React.ComponentType[] = [];
@@ -37,12 +39,37 @@ export class PluginAPIImpl implements PluginAPI {
 		};
 	}
 
-	registerTool(tool: ToolDefinition): Disposable {
+	registerTool(
+		tool: ToolDefinition,
+		options?: { secondary?: ToolDefinition[] },
+	): Disposable {
+		// Register the main tool
 		this.tools.set(tool.id, tool);
+		this.mainTools.set(tool.id, tool);
+
+		// Register secondary tools if provided
+		if (options?.secondary) {
+			this.secondaryToolsMap.set(tool.id, options.secondary);
+
+			// Register all secondary tools in the main tools map for lookup
+			options.secondary.forEach((secondaryTool) => {
+				this.tools.set(secondaryTool.id, secondaryTool);
+			});
+		}
 
 		return {
 			dispose: () => {
 				this.tools.delete(tool.id);
+				this.mainTools.delete(tool.id);
+
+				// Clean up secondary tools
+				const secondaryTools = this.secondaryToolsMap.get(tool.id);
+				if (secondaryTools) {
+					secondaryTools.forEach((secondaryTool) => {
+						this.tools.delete(secondaryTool.id);
+					});
+					this.secondaryToolsMap.delete(tool.id);
+				}
 			},
 		};
 	}
@@ -257,6 +284,14 @@ export class PluginAPIImpl implements PluginAPI {
 
 	getRegisteredTools(): Map<string, ToolDefinition> {
 		return new Map(this.tools);
+	}
+
+	getMainTools(): Map<string, ToolDefinition> {
+		return new Map(this.mainTools);
+	}
+
+	getSecondaryTools(mainToolId: string): ToolDefinition[] {
+		return this.secondaryToolsMap.get(mainToolId) || [];
 	}
 
 	getToolbarComponents(): React.ComponentType[] {
