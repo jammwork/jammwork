@@ -4,9 +4,10 @@ export const PositionDisplay = () => {
 	const { viewBox } = useCanvasStore();
 
 	return (
-		<div className="absolute bottom-4 right-4 text-foreground text-xs font-mono bg-muted/80 px-2 py-1 rounded pointer-events-none select-none">
-			X: {Math.round(viewBox.x)} Y: {Math.round(viewBox.y)} Zoom:{" "}
-			{Math.round(viewBox.zoom * 100)}%
+		<div className="absolute bottom-2 right-2 z-10 font-mono text-[10px] opacity-80 space-x-3">
+			<span>X: {Math.round(viewBox.x)}</span>
+			<span>Y: {Math.round(viewBox.y)}</span>
+			<span>Zoom: {Math.round(viewBox.zoom * 100)}%</span>
 		</div>
 	);
 };
