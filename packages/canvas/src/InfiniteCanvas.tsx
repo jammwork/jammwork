@@ -1,20 +1,27 @@
 import type { Plugin } from "@jammwork/api";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { CanvasOverlay } from "./components/CanvasOverlay";
 import { CanvasRenderer } from "./components/CanvasRenderer";
 import { useCanvasEvents } from "./hooks/useCanvasEvents";
 import { usePluginSystem } from "./hooks/usePluginSystem";
 import { useViewport } from "./hooks/useViewport";
+import { useYjsSync } from "./hooks/useYjsSync";
 import { useZoomPrevention } from "./hooks/useZoomPrevention";
 
 interface InfiniteCanvasProps {
 	plugins?: Plugin[];
 	accentColor?: string;
+	backendUrl?: string;
+	userId?: string;
+	roomId?: string;
 }
 
 export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 	plugins = [],
 	accentColor = "#3b82f6",
+	backendUrl,
+	userId,
+	roomId,
 }) => {
 	const svgRef = useRef<SVGSVGElement>(null);
 
@@ -23,6 +30,21 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 		plugins,
 		accentColor,
 	});
+
+	// Yjs synchronization (only if backend URL and user ID are provided)
+	const yjsSync = useYjsSync({
+		backendUrl: backendUrl || "",
+		userId: userId || "",
+		roomId,
+		pluginApi: backendUrl && userId ? api : undefined,
+	});
+
+	// Update plugin system with Yjs document manager
+	useEffect(() => {
+		if (api && yjsSync.documentManager) {
+			api.setYjsDocumentManager(yjsSync.documentManager);
+		}
+	}, [api, yjsSync.documentManager]);
 
 	// Viewport and canvas state
 	const {

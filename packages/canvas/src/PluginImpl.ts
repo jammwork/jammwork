@@ -9,6 +9,7 @@ import type {
 	PluginEvent,
 	PluginEventData,
 	ToolDefinition,
+	YjsDocumentManager,
 } from "@jammwork/api";
 import { useCanvasStore } from "@/store";
 
@@ -22,10 +23,15 @@ export class PluginAPIImpl implements PluginAPI {
 	private contextMenuItems: ContextMenuItem[] = [];
 	private layerComponents: React.ComponentType[] = [];
 	private accentColor: string;
+	private yjsDocumentManager?: YjsDocumentManager;
 
 	constructor(eventBus: EventBus, accentColor = "#3b82f6") {
 		this.eventBus = eventBus;
 		this.accentColor = accentColor;
+	}
+
+	setYjsDocumentManager(manager: YjsDocumentManager | undefined): void {
+		this.yjsDocumentManager = manager;
 	}
 
 	// Element management
@@ -172,14 +178,36 @@ export class PluginAPIImpl implements PluginAPI {
 	// Element operations via canvas store
 	createElement(element: Omit<Element, "id">): string {
 		const state = useCanvasStore.getState();
-		const id = state.createElement(element);
+		const result = state.createElement(element) as {
+			id: string;
+			element: Element;
+		};
 
-		const newElement = state.elements.get(id);
-		if (newElement) {
-			this.emit("element:created", { element: newElement });
+		if (result?.element) {
+			this.emit("element:created", { element: result.element });
+			return result.id;
+		} else {
+			console.error("Failed to create element - unexpected return format");
+			return "";
 		}
+	}
 
-		return id;
+	// Internal method for adding elements with existing IDs (used by sync)
+	addElementWithId(element: Element): void {
+		const state = useCanvasStore.getState();
+		
+		// Directly add to the store without generating new ID
+		const newElements = new Map(state.elements);
+		newElements.set(element.id, element);
+		
+		// Update the store
+		useCanvasStore.setState((currentState) => ({
+			...currentState,
+			elements: newElements,
+		}));
+
+		// Emit the created event
+		this.emit("element:created", { element });
 	}
 
 	updateElement(id: string, updates: Partial<Element>): void {
@@ -218,7 +246,8 @@ export class PluginAPIImpl implements PluginAPI {
 		const state = useCanvasStore.getState();
 
 		if (!state.elements.has(id)) {
-			throw new Error(`Element with id "${id}" not found`);
+			console.warn(`Element with id "${id}" not found in store. Available elements:`, Array.from(state.elements.keys()));
+			return; // Gracefully handle missing elements instead of throwing
 		}
 
 		const wasSelected = state.selectionState.selectedElements.includes(id);
@@ -313,5 +342,10 @@ export class PluginAPIImpl implements PluginAPI {
 	// Theme and styling
 	getAccentColor(): string {
 		return this.accentColor;
+	}
+
+	// Yjs synchronization
+	getYjsDocumentManager(): YjsDocumentManager | undefined {
+		return this.yjsDocumentManager;
 	}
 }
