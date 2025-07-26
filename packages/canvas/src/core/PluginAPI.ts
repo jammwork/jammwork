@@ -19,8 +19,6 @@ export class PluginAPIImpl implements PluginAPI {
 	private toolbarComponents: React.ComponentType[] = [];
 	private contextMenuItems: ContextMenuItem[] = [];
 	private layerComponents: React.ComponentType[] = [];
-	private elements = new Map<string, Element>();
-	private selectedElements: string[] = [];
 
 	constructor(eventBus: EventBus) {
 		this.eventBus = eventBus;
@@ -65,13 +63,14 @@ export class PluginAPIImpl implements PluginAPI {
 		return {
 			viewBox: { ...state.viewBox },
 			dimensions: { ...state.dimensions },
-			elements: new Map(this.elements),
-			selectedElements: [...this.selectedElements],
+			elements: new Map(state.elements),
+			selectedElements: [...state.selectionState.selectedElements],
 		};
 	}
 
 	getSelectedElements(): readonly string[] {
-		return [...this.selectedElements];
+		const state = useCanvasStore.getState();
+		return [...state.selectionState.selectedElements];
 	}
 
 	// Coordinate conversion utilities
@@ -141,78 +140,88 @@ export class PluginAPIImpl implements PluginAPI {
 		};
 	}
 
-	// Element operations via events
+	// Element operations via canvas store
 	createElement(element: Omit<Element, "id">): string {
-		const id = `element_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-		const newElement: Element = { ...element, id };
+		const state = useCanvasStore.getState();
+		const id = state.createElement(element);
 
-		this.elements.set(id, newElement);
-		this.emit("element:created", { element: newElement });
+		const newElement = state.elements.get(id);
+		if (newElement) {
+			this.emit("element:created", { element: newElement });
+		}
 
 		return id;
 	}
 
 	updateElement(id: string, updates: Partial<Element>): void {
-		const element = this.elements.get(id);
+		const state = useCanvasStore.getState();
+		const element = state.elements.get(id);
+
 		if (!element) {
 			throw new Error(`Element with id "${id}" not found`);
 		}
 
-		const updatedElement = { ...element, ...updates, id }; // Ensure id cannot be changed
-		this.elements.set(id, updatedElement);
+		const previous = { ...element };
+		state.updateElement(id, updates);
 
-		this.emit("element:updated", {
-			id,
-			element: updatedElement,
-			changes: updates,
-		});
-	}
-
-	deleteElement(id: string): void {
-		const element = this.elements.get(id);
-		if (!element) {
-			throw new Error(`Element with id "${id}" not found`);
-		}
-
-		this.elements.delete(id);
-
-		// Remove from selection if selected
-		const selectedIndex = this.selectedElements.indexOf(id);
-		if (selectedIndex > -1) {
-			this.selectedElements.splice(selectedIndex, 1);
-		}
-
-		this.emit("element:deleted", { id, element });
-	}
-
-	selectElement(id: string): void {
-		if (!this.elements.has(id)) {
-			throw new Error(`Element with id "${id}" not found`);
-		}
-
-		if (!this.selectedElements.includes(id)) {
-			this.selectedElements.push(id);
-			// biome-ignore lint/style/noNonNullAssertion: no need to check if element exists
-			const element = this.elements.get(id)!;
-			this.emit("element:selected", { id, element });
-			this.emit("selection:changed", {
-				selected: [...this.selectedElements],
-				previous: this.selectedElements.slice(0, -1),
+		const updatedElement = state.elements.get(id);
+		if (updatedElement) {
+			this.emit("element:updated", {
+				id,
+				element: updatedElement,
+				changes: updates,
 			});
 		}
 	}
 
-	deselectElement(id: string): void {
-		const index = this.selectedElements.indexOf(id);
-		if (index > -1) {
-			const previous = [...this.selectedElements];
-			this.selectedElements.splice(index, 1);
+	deleteElement(id: string): void {
+		const state = useCanvasStore.getState();
+		const element = state.elements.get(id);
 
-			const element = this.elements.get(id);
+		if (!element) {
+			throw new Error(`Element with id "${id}" not found`);
+		}
+
+		state.deleteElement(id);
+		this.emit("element:deleted", { id, element });
+	}
+
+	selectElement(id: string): void {
+		const state = useCanvasStore.getState();
+
+		if (!state.elements.has(id)) {
+			throw new Error(`Element with id "${id}" not found`);
+		}
+
+		const wasSelected = state.selectionState.selectedElements.includes(id);
+		if (!wasSelected) {
+			const previous = [...state.selectionState.selectedElements];
+			state.selectElement(id);
+
+			const element = state.elements.get(id);
+			if (element) {
+				this.emit("element:selected", { id, element });
+				this.emit("selection:changed", {
+					selected: [...state.selectionState.selectedElements],
+					previous,
+				});
+			}
+		}
+	}
+
+	deselectElement(id: string): void {
+		const state = useCanvasStore.getState();
+		const wasSelected = state.selectionState.selectedElements.includes(id);
+
+		if (wasSelected) {
+			const previous = [...state.selectionState.selectedElements];
+			state.deselectElement(id);
+
+			const element = state.elements.get(id);
 			if (element) {
 				this.emit("element:deselected", { id, element });
 				this.emit("selection:changed", {
-					selected: [...this.selectedElements],
+					selected: [...state.selectionState.selectedElements],
 					previous,
 				});
 			}
@@ -220,15 +229,19 @@ export class PluginAPIImpl implements PluginAPI {
 	}
 
 	clearSelection(): void {
-		const previous = [...this.selectedElements];
-		this.selectedElements.forEach((id) => {
-			const element = this.elements.get(id);
+		const state = useCanvasStore.getState();
+		const previous = [...state.selectionState.selectedElements];
+
+		// Emit deselected events for all elements
+		previous.forEach((id) => {
+			const element = state.elements.get(id);
 			if (element) {
 				this.emit("element:deselected", { id, element });
 			}
 		});
 
-		this.selectedElements = [];
+		state.clearSelection();
+
 		this.emit("selection:changed", {
 			selected: [],
 			previous,
@@ -257,6 +270,7 @@ export class PluginAPIImpl implements PluginAPI {
 	}
 
 	getElements(): Map<string, Element> {
-		return new Map(this.elements);
+		const state = useCanvasStore.getState();
+		return new Map(state.elements);
 	}
 }

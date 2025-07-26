@@ -93,6 +93,7 @@ export class PluginManager {
 			// Registry access methods
 			getRegisteredTools: this.api.getRegisteredTools.bind(this.api),
 			getLayerComponents: this.api.getLayerComponents.bind(this.api),
+			getElements: this.api.getElements.bind(this.api),
 
 			// Element operations
 			createElement: this.api.createElement.bind(this.api),

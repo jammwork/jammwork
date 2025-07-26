@@ -103,6 +103,7 @@ export interface PluginAPI {
 	// Registry access methods
 	getRegisteredTools(): Map<string, ToolDefinition>;
 	getLayerComponents(): React.ComponentType[];
+	getElements(): Map<string, Element>;
 
 	// Element operations via events
 	createElement(element: Omit<Element, "id">): string;

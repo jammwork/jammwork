@@ -1,6 +1,7 @@
 import { useCallback, useEffect, RefObject } from "react";
 import { useCanvasStore } from "../stores/canvasStore";
 import type { PluginAPI } from "../types/plugin";
+import { createSelectTool } from "../tools/SelectTool";
 
 interface UseCanvasEventsProps {
 	svgRef: RefObject<SVGSVGElement | null>;
@@ -19,13 +20,32 @@ export const useCanvasEvents = ({
 	endDrag,
 	zoomAt,
 }: UseCanvasEventsProps) => {
+	const selectTool = createSelectTool();
 	// Keyboard shortcuts for tools
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.target !== document.body) return; // Only handle when not in input
 
-			const { setActiveTool } = useCanvasStore.getState();
+			const { setActiveTool, toolState } = useCanvasStore.getState();
 
+			// First check if the current tool handles the keydown
+			if (toolState.activeTool === "select" && selectTool.onKeyDown) {
+				selectTool.onKeyDown(e);
+				return;
+			}
+
+			// Check if any plugin tool handles the keydown
+			const registeredTools = pluginApi.getRegisteredTools();
+			const activeTool = Array.from(registeredTools.values()).find(
+				(tool) => tool.id === toolState.activeTool,
+			);
+
+			if (activeTool?.onKeyDown) {
+				activeTool.onKeyDown(e);
+				return;
+			}
+
+			// Handle tool switching shortcuts
 			switch (e.key.toLowerCase()) {
 				case "v":
 					setActiveTool("select");
@@ -40,7 +60,7 @@ export const useCanvasEvents = ({
 
 		document.addEventListener("keydown", handleKeyDown);
 		return () => document.removeEventListener("keydown", handleKeyDown);
-	}, []);
+	}, [selectTool, pluginApi]);
 
 	const handleMouseDown = useCallback(
 		(e: React.MouseEvent) => {
@@ -61,14 +81,13 @@ export const useCanvasEvents = ({
 
 			if (activeTool?.onMouseDown) {
 				activeTool.onMouseDown(e.nativeEvent, screenPosition);
+			} else if (toolState.activeTool === "select") {
+				selectTool.onMouseDown?.(e.nativeEvent, screenPosition);
 			} else if (toolState.activeTool === "pan") {
 				startDrag({ x: e.clientX, y: e.clientY });
-			} else if (toolState.activeTool === "select") {
-				// TODO: Handle element selection
-				console.log("Select tool - implement element selection logic");
 			}
 		},
-		[startDrag, pluginApi, svgRef],
+		[startDrag, pluginApi, svgRef, selectTool],
 	);
 
 	const handleMouseMove = useCallback(
@@ -90,13 +109,13 @@ export const useCanvasEvents = ({
 
 			if (activeTool?.onMouseMove) {
 				activeTool.onMouseMove(e.nativeEvent, screenPosition);
+			} else if (toolState.activeTool === "select") {
+				selectTool.onMouseMove?.(e.nativeEvent, screenPosition);
 			} else if (toolState.activeTool === "pan") {
 				updateDrag({ x: e.clientX, y: e.clientY });
-			} else if (toolState.activeTool === "select") {
-				// TODO: Handle element hover/selection feedback
 			}
 		},
-		[updateDrag, pluginApi, svgRef],
+		[updateDrag, pluginApi, svgRef, selectTool],
 	);
 
 	const handleMouseUp = useCallback(
@@ -118,11 +137,13 @@ export const useCanvasEvents = ({
 
 			if (activeTool?.onMouseUp) {
 				activeTool.onMouseUp(e.nativeEvent, screenPosition);
+			} else if (toolState.activeTool === "select") {
+				selectTool.onMouseUp?.(e.nativeEvent, screenPosition);
 			} else {
 				endDrag();
 			}
 		},
-		[endDrag, pluginApi, svgRef],
+		[endDrag, pluginApi, svgRef, selectTool],
 	);
 
 	const handleMouseLeave = useCallback(() => {

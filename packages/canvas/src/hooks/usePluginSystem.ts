@@ -3,6 +3,7 @@ import { PluginManager } from "../core/PluginManager";
 import { PluginAPIImpl } from "../core/PluginAPI";
 import { EventBus } from "../core/EventBus";
 import { DrawingPlugin } from "../plugins/drawing";
+import { RectanglePlugin } from "../plugins/shapes/RectanglePlugin";
 import type { Plugin } from "../types/plugin";
 
 interface UsePluginSystemProps {
@@ -13,6 +14,7 @@ export const usePluginSystem = ({
 	plugins = [],
 }: UsePluginSystemProps = {}) => {
 	const [pluginsLoaded, setPluginsLoaded] = useState(false);
+	const [initialized, setInitialized] = useState(false);
 
 	// Initialize plugin system once and keep stable reference
 	const pluginSystemRef = useRef<{
@@ -38,6 +40,9 @@ export const usePluginSystem = ({
 		return pluginsLoaded ? stableApi.getLayerComponents() : [];
 	}, [pluginsLoaded, stableApi]);
 
+	// Memoize built-in plugins to prevent recreating array on every render
+	const builtInPlugins = useMemo(() => [DrawingPlugin, RectanglePlugin], []);
+
 	// Load plugins when they change
 	useEffect(() => {
 		let isMounted = true;
@@ -47,9 +52,8 @@ export const usePluginSystem = ({
 
 			// Only reload if plugins array actually changed
 			const currentPlugins = pluginSystem.manager.getLoadedPlugins();
-			const shouldReload =
-				currentPlugins.length === 0 ||
-				plugins.length !== currentPlugins.length - 1; // -1 for built-in DrawingPlugin
+			const expectedTotal = builtInPlugins.length + plugins.length;
+			const shouldReload = currentPlugins.length !== expectedTotal;
 
 			if (!shouldReload) return;
 
@@ -59,7 +63,6 @@ export const usePluginSystem = ({
 			await pluginSystem.manager.unloadAllPlugins();
 
 			// Load built-in plugins first
-			const builtInPlugins = [DrawingPlugin];
 			await pluginSystem.manager.loadPlugins(builtInPlugins);
 
 			// Load user-provided plugins
@@ -77,7 +80,7 @@ export const usePluginSystem = ({
 		return () => {
 			isMounted = false;
 		};
-	}, [plugins, pluginSystem.manager]);
+	}, [plugins, builtInPlugins, pluginSystem.manager]);
 
 	return {
 		pluginSystem,

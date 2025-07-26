@@ -1,5 +1,6 @@
 import React, { forwardRef, useMemo } from "react";
 import { CANVAS_CONSTANTS } from "@/constants";
+import { SelectionLayer } from "./SelectionLayer";
 
 interface CanvasRendererProps {
 	dimensions: { width: number; height: number };
@@ -76,6 +77,9 @@ export const CanvasRenderer = forwardRef<
 				{layerComponents.map((LayerComponent, index) => (
 					<LayerComponent key={`layer-${LayerComponent.name || index}`} />
 				))}
+
+				{/* Selection layer - always on top */}
+				<SelectionLayer />
 			</svg>
 		);
 	},
