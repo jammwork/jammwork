@@ -1,5 +1,5 @@
 import React from "react";
-import { useShapeCreationStore } from "../stores/shapesStore";
+import { useShapeCreationStore } from "../shapesStore";
 
 interface CirclePreviewProps {
 	accentColor?: string;

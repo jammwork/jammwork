@@ -1,6 +1,6 @@
 import { Triangle } from "lucide-react";
 import type { PluginAPI, ToolDefinition } from "@jammwork/api";
-import { useShapeCreationStore } from "../stores/shapesStore";
+import { useShapeCreationStore } from "../shapesStore";
 
 export const createTriangleTool = (api: PluginAPI): ToolDefinition => ({
 	id: "triangle",

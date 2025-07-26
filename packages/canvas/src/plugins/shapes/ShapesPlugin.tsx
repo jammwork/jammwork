@@ -12,7 +12,7 @@ import { createTriangleLayer } from "./layers/TriangleLayer";
 import { RectanglePreview } from "./components/RectanglePreview";
 import { CirclePreview } from "./components/CirclePreview";
 import { TrianglePreview } from "./components/TrianglePreview";
-import { useShapeCreationStore } from "./stores/shapesStore";
+import { useShapeCreationStore } from "./shapesStore";
 
 export const ShapesPlugin: Plugin = {
 	id: "shapes-plugin",
