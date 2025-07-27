@@ -1,4 +1,5 @@
 import { InfiniteCanvas } from "@jammwork/canvas";
+import { ScreenSharePlugin } from "@jammwork/plugin-screenshare";
 import { useParams } from "react-router-dom";
 
 function EditorPage() {
@@ -17,6 +18,7 @@ function EditorPage() {
 				userId={name}
 				roomId={roomId}
 				accentColor="#8b5cf6"
+				plugins={[ScreenSharePlugin]}
 			/>
 		</div>
 	);
