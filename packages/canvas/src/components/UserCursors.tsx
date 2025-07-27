@@ -1,4 +1,5 @@
-import { MousePointer } from "lucide-react";
+import { TinyColor } from '@ctrl/tinycolor';
+import { MousePointer2 } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import type { Awareness } from "y-protocols/awareness";
@@ -66,6 +67,8 @@ export const UserCursors: React.FC<UserCursorsProps> = ({
 		};
 	}, [awareness, currentUserId]);
 
+
+
 	return (
 		<>
 			{otherUsers.map((user) => (
@@ -79,7 +82,7 @@ export const UserCursors: React.FC<UserCursorsProps> = ({
 						style={{ pointerEvents: "none" }}
 					>
 						<div style={{ transform: "translate(-2px, -2px)" }}>
-							<MousePointer
+							<MousePointer2
 								size={20}
 								style={{
 									color: user.color,
@@ -101,7 +104,7 @@ export const UserCursors: React.FC<UserCursorsProps> = ({
 						<div
 							style={{
 								backgroundColor: user.color,
-								color: "white",
+								color: new TinyColor(user.color).isLight() ? "black" : "white",
 								fontSize: "12px",
 								padding: "2px 6px",
 								borderRadius: "4px",

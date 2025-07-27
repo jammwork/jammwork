@@ -15,6 +15,7 @@
 		}
 	},
 	"dependencies": {
+		"@ctrl/tinycolor": "^4.1.0",
 		"@jammwork/api": "workspace:*",
 		"@jammwork/ui": "workspace:*",
 		"lucide-react": "^0.525.0",
