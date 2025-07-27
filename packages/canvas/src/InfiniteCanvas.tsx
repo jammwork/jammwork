@@ -12,9 +12,9 @@ import { useZoomPrevention } from "./hooks/useZoomPrevention";
 interface InfiniteCanvasProps {
 	plugins?: Plugin[];
 	accentColor?: string;
-	backendUrl?: string;
-	userId?: string;
-	roomId?: string;
+	backendUrl: string;
+	userId: string;
+	roomId: string;
 }
 
 export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
