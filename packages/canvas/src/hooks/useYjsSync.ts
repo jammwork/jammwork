@@ -1,5 +1,5 @@
 /** biome-ignore-all lint/style/noNonNullAssertion: no nullability */
-import type { PluginAPI, YjsDocumentManager } from "@jammwork/api";
+import type { YjsDocumentManager } from "@jammwork/api";
 import { useCallback, useEffect, useRef } from "react";
 import type { Awareness } from "y-protocols/awareness";
 import { WebsocketProvider } from "y-websocket";
@@ -9,7 +9,6 @@ interface UseYjsSyncProps {
 	backendUrl: string;
 	userId: string;
 	roomId?: string;
-	pluginApi?: PluginAPI;
 }
 
 interface YjsSyncResult {
@@ -25,18 +24,11 @@ export const useYjsSync = ({
 	backendUrl,
 	userId,
 	roomId = "default-canvas",
-	pluginApi,
 }: UseYjsSyncProps): YjsSyncResult => {
 	const documentsRef = useRef<Map<string, Y.Doc>>(new Map());
 	const providersRef = useRef<Map<string, WebsocketProvider>>(new Map());
 	const mainDocRef = useRef<Y.Doc | null>(null);
 	const mainProviderRef = useRef<WebsocketProvider | null>(null);
-	const pluginApiRef = useRef<PluginAPI | undefined>(pluginApi);
-
-	// Update plugin API ref when it changes
-	useEffect(() => {
-		pluginApiRef.current = pluginApi;
-	}, [pluginApi]);
 
 	// Initialize main canvas document
 	useEffect(() => {
@@ -109,113 +101,6 @@ export const useYjsSync = ({
 			doc.destroy();
 		};
 	}, [backendUrl, roomId, userId]);
-
-	// Set up plugin API synchronization when both doc and API are available
-	useEffect(() => {
-		if (!mainDocRef.current || !pluginApiRef.current) return;
-
-		const doc = mainDocRef.current;
-		const elementsMap = doc.getMap("elements");
-		const selectionArray = doc.getArray("selection");
-		const viewportMap = doc.getMap("viewport");
-
-		// Listen to plugin API events and sync to Yjs
-		const disposables = [
-			pluginApiRef.current.on("element:created", ({ element }) => {
-				if (!isApplyingRemoteChanges) {
-					elementsMap.set(element.id, element);
-				}
-			}),
-
-			pluginApiRef.current.on("element:updated", ({ id, element }) => {
-				if (!isApplyingRemoteChanges) {
-					elementsMap.set(id, element);
-				}
-			}),
-
-			pluginApiRef.current.on("element:deleted", ({ id }) => {
-				if (!isApplyingRemoteChanges) {
-					elementsMap.delete(id);
-				}
-			}),
-
-			pluginApiRef.current.on("selection:changed", ({ selected }) => {
-				if (!isApplyingRemoteChanges) {
-					selectionArray.delete(0, selectionArray.length);
-					selectionArray.insert(0, selected);
-				}
-			}),
-
-			pluginApiRef.current.on("canvas:pan", ({ x, y }) => {
-				viewportMap.set("x", x);
-				viewportMap.set("y", y);
-			}),
-
-			pluginApiRef.current.on("canvas:zoom", ({ zoom, centerX, centerY }) => {
-				viewportMap.set("zoom", zoom);
-				viewportMap.set("centerX", centerX);
-				viewportMap.set("centerY", centerY);
-			}),
-		];
-
-		// Flag to prevent infinite loops when applying remote changes
-		let isApplyingRemoteChanges = false;
-
-		// Listen to Yjs changes and update plugin API
-		const handleElementsChange = () => {
-			if (isApplyingRemoteChanges) {
-				return;
-			}
-
-			const canvasState = pluginApiRef.current!.getCanvasState();
-			// biome-ignore lint/suspicious/noExplicitAny: we don't know the type of the elements
-			const remoteElements = elementsMap.toJSON() as Record<string, any>;
-
-			isApplyingRemoteChanges = true;
-
-			try {
-				// Update elements that don't match remote state
-				for (const [id, remoteElement] of Object.entries(remoteElements)) {
-					const localElement = canvasState.elements.get(id);
-					if (
-						!localElement ||
-						JSON.stringify(localElement) !== JSON.stringify(remoteElement)
-					) {
-						if (localElement) {
-							pluginApiRef.current!.updateElement(id, remoteElement);
-						} else {
-							// Use addElementWithId to preserve the original ID
-							(pluginApiRef.current as any).addElementWithId(remoteElement);
-						}
-					}
-				}
-
-				// Remove elements that don't exist remotely
-				for (const [id] of canvasState.elements) {
-					if (!(id in remoteElements)) {
-						pluginApiRef.current!.deleteElement(id);
-					}
-				}
-			} finally {
-				isApplyingRemoteChanges = false;
-			}
-		};
-
-		const handleSelectionChange = () => {
-			// Disable selection sync entirely to prevent interference with local selection
-			// TODO: Implement proper collaborative selection sync that doesn't interfere with local UX
-			return;
-		};
-
-		elementsMap.observe(handleElementsChange);
-		selectionArray.observe(handleSelectionChange);
-
-		return () => {
-			disposables.forEach((d) => d.dispose());
-			elementsMap.unobserve(handleElementsChange);
-			selectionArray.unobserve(handleSelectionChange);
-		};
-	}, [mainDocRef.current, pluginApiRef.current]);
 
 	// Document manager for plugins
 	const documentManager: YjsDocumentManager = {

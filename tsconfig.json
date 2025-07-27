@@ -3,17 +3,17 @@
 	"compileOnSave": false,
 	"files": [],
 	"references": [
-		{
-			"path": "./apps/web"
-		},
-		{
-			"path": "./packages/canvas"
-		},
-		{
-			"path": "./packages/ui"
-		},
-		{
-			"path": "./packages/api"
-		}
-	]
+    {
+      "path": "./apps/web"
+    },
+    {
+      "path": "./packages/canvas"
+    },
+    {
+      "path": "./packages/ui"
+    },
+    {
+      "path": "./packages/api"
+    }
+  ]
 }

@@ -1,5 +1,5 @@
 import type { Plugin } from "@jammwork/api";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { CanvasOverlay } from "./components/CanvasOverlay";
 import { CanvasRenderer } from "./components/CanvasRenderer";
 import { UserCursorsLayer } from "./components/UserCursorsLayer";
@@ -26,26 +26,22 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 }) => {
 	const svgRef = useRef<SVGSVGElement>(null);
 
-	// Plugin system management
-	const { api, layerComponents, pluginsLoaded } = usePluginSystem({
-		plugins,
-		accentColor,
-	});
-
 	// Yjs synchronization (only if backend URL and user ID are provided)
 	const yjsSync = useYjsSync({
 		backendUrl: backendUrl || "",
 		userId: userId || "",
 		roomId,
-		pluginApi: backendUrl && userId ? api : undefined,
 	});
 
-	// Update plugin system with Yjs document manager
-	useEffect(() => {
-		if (api && yjsSync.documentManager) {
-			api.setYjsDocumentManager(yjsSync.documentManager);
-		}
-	}, [api, yjsSync.documentManager]);
+	// Plugin system management with documentManager
+	const { api, layerComponents, pluginsLoaded } = usePluginSystem({
+		plugins,
+		accentColor,
+		yjsDocumentManager: yjsSync.documentManager,
+		mainDocument: yjsSync.mainDocument,
+		userId,
+		roomId,
+	});
 
 	// Viewport and canvas state
 	const {
