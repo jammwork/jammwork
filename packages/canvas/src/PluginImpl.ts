@@ -24,10 +24,14 @@ export class PluginAPIImpl implements PluginAPI {
 	private layerComponents: React.ComponentType[] = [];
 	private accentColor: string;
 	private yjsDocumentManager?: YjsDocumentManager;
+	private userId: string;
+	private roomId: string;
 
-	constructor(eventBus: EventBus, accentColor = "#3b82f6") {
+	constructor(eventBus: EventBus, accentColor = "#3b82f6", userId = "", roomId = "") {
 		this.eventBus = eventBus;
 		this.accentColor = accentColor;
+		this.userId = userId;
+		this.roomId = roomId;
 	}
 
 	setYjsDocumentManager(manager: YjsDocumentManager | undefined): void {
@@ -347,8 +351,21 @@ export class PluginAPIImpl implements PluginAPI {
 		return this.accentColor;
 	}
 
+	// User identification
+	getUserId(): string {
+		return this.userId;
+	}
+
+	// Room identification
+	getRoomId(): string {
+		return this.roomId;
+	}
+
 	// Yjs synchronization
-	getYjsDocumentManager(): YjsDocumentManager | undefined {
+	getYjsDocumentManager(): YjsDocumentManager {
+		if (!this.yjsDocumentManager) {
+			throw new Error("YjsDocumentManager not available");
+		}
 		return this.yjsDocumentManager;
 	}
 }
