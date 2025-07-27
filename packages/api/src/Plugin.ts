@@ -1,3 +1,4 @@
+import type { Awareness } from "y-protocols/awareness";
 import type * as Y from "yjs";
 
 export interface Disposable {
@@ -138,6 +139,7 @@ export interface PluginAPI {
 
 	// Yjs synchronization
 	getYjsDocumentManager(): YjsDocumentManager;
+	getAwareness(): Awareness; // Awareness type not available in API package
 }
 
 export interface Plugin {

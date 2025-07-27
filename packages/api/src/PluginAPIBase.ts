@@ -1,3 +1,4 @@
+import type { Awareness } from "y-protocols/awareness";
 import type { EventBus } from "./EventBus";
 
 import type {
@@ -205,4 +206,5 @@ export abstract class PluginAPIBase implements PluginAPI {
 
 	// Yjs synchronization
 	abstract getYjsDocumentManager(): YjsDocumentManager;
+	abstract getAwareness(): Awareness;
 }
