@@ -1,6 +1,7 @@
 import type { Plugin, YjsDocumentManager } from "@jammwork/api";
 import { EventBus } from "@jammwork/api";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { Awareness } from "y-protocols/awareness";
 import type * as Y from "yjs";
 import { PluginAPIImpl } from "../PluginImpl";
 import { PluginManager } from "../PluginManager";
@@ -12,6 +13,7 @@ interface UsePluginSystemProps {
 	accentColor?: string;
 	yjsDocumentManager?: YjsDocumentManager | null;
 	mainDocument?: Y.Doc | null;
+	awareness?: Awareness;
 	userId?: string;
 	roomId?: string;
 }
@@ -21,6 +23,7 @@ export const usePluginSystem = ({
 	accentColor = "#3b82f6",
 	yjsDocumentManager,
 	mainDocument,
+	awareness,
 	userId = "",
 	roomId = "",
 }: UsePluginSystemProps = {}) => {
@@ -50,12 +53,20 @@ export const usePluginSystem = ({
 			api.setYjsDocumentManager(yjsDocumentManager);
 		}
 
+		// Set the awareness immediately when creating the API
+		if (awareness) {
+			api.setAwareness(awareness);
+		}
+
 		const manager = new PluginManager(api);
 		pluginSystemRef.current = { eventBus, api, manager, key: pluginSystemKey };
 	} else {
-		// Plugin system exists, but make sure it has the latest documentManager
+		// Plugin system exists, but make sure it has the latest documentManager and awareness
 		if (yjsDocumentManager) {
 			pluginSystemRef.current.api.setYjsDocumentManager(yjsDocumentManager);
+		}
+		if (awareness) {
+			pluginSystemRef.current.api.setAwareness(awareness);
 		}
 	}
 

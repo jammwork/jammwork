@@ -73,24 +73,25 @@ export const useYjsSync = ({
 		};
 
 		const handleVisibilityChange = () => {
-			if (document.visibilityState === "hidden") {
-				// Clear awareness when tab becomes hidden (helps with tab switches)
-				provider.awareness.setLocalState(null);
-			} else if (document.visibilityState === "visible") {
-				// Restore awareness when tab becomes visible again
-				provider.awareness.setLocalStateField("user", {
-					id: userId,
-					name: `User ${userId}`,
-					color: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`,
-					cursor: { x: 0, y: 0 },
-				});
-			}
+			// DISABLED: This was clearing awareness when switching tabs, preventing screen share testing
+			// if (document.visibilityState === "hidden") {
+			// 	// Clear awareness when tab becomes hidden (helps with tab switches)
+			// 	provider.awareness.setLocalState(null);
+			// } else if (document.visibilityState === "visible") {
+			// 	// Restore awareness when tab becomes visible again
+			// 	provider.awareness.setLocalStateField("user", {
+			// 		id: userId,
+			// 		name: `User ${userId}`,
+			// 		color: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`,
+			// 		cursor: { x: 0, y: 0 },
+			// 	});
+			// }
 		};
 
 		// Add event listeners for cleanup
 		window.addEventListener("beforeunload", handleBeforeUnload);
 		window.addEventListener("unload", handleBeforeUnload);
-		document.addEventListener("visibilitychange", handleVisibilityChange);
+		// DISABLED: document.addEventListener("visibilitychange", handleVisibilityChange);
 
 		mainDocRef.current = doc;
 		mainProviderRef.current = provider;
@@ -99,7 +100,7 @@ export const useYjsSync = ({
 			// Remove event listeners
 			window.removeEventListener("beforeunload", handleBeforeUnload);
 			window.removeEventListener("unload", handleBeforeUnload);
-			document.removeEventListener("visibilitychange", handleVisibilityChange);
+			// DISABLED: document.removeEventListener("visibilitychange", handleVisibilityChange);
 
 			// Clear awareness state before destroying
 			provider.awareness.setLocalState(null);

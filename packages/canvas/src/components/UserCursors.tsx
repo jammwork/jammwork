@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useRef } from "react";
 import { MousePointer } from "lucide-react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Awareness } from "y-protocols/awareness";
 
 interface UserCursor {
@@ -20,7 +21,7 @@ export const UserCursors: React.FC<UserCursorsProps> = ({
 	currentUserId,
 }) => {
 	const [otherUsers, setOtherUsers] = useState<UserCursor[]>([]);
-	const cleanupIntervalRef = useRef<NodeJS.Timeout>();
+	const cleanupIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
 	useEffect(() => {
 		if (!awareness) return;
@@ -29,7 +30,7 @@ export const UserCursors: React.FC<UserCursorsProps> = ({
 			const users: UserCursor[] = [];
 			const now = Date.now();
 
-			awareness.getStates().forEach((state, clientId) => {
+			awareness.getStates().forEach((state) => {
 				if (state.user && state.user.id !== currentUserId) {
 					users.push({
 						id: state.user.id,

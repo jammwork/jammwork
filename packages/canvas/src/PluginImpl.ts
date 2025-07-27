@@ -11,6 +11,7 @@ import type {
 	ToolDefinition,
 	YjsDocumentManager,
 } from "@jammwork/api";
+import type { Awareness } from "y-protocols/awareness";
 import { useCanvasStore } from "@/store";
 
 export class PluginAPIImpl implements PluginAPI {
@@ -24,6 +25,7 @@ export class PluginAPIImpl implements PluginAPI {
 	private layerComponents: React.ComponentType[] = [];
 	private accentColor: string;
 	private yjsDocumentManager?: YjsDocumentManager;
+	private awareness?: Awareness;
 	private userId: string;
 	private roomId: string;
 
@@ -41,6 +43,10 @@ export class PluginAPIImpl implements PluginAPI {
 
 	setYjsDocumentManager(manager: YjsDocumentManager | undefined): void {
 		this.yjsDocumentManager = manager;
+	}
+
+	setAwareness(awareness: Awareness): void {
+		this.awareness = awareness;
 	}
 
 	// Element management
@@ -372,5 +378,12 @@ export class PluginAPIImpl implements PluginAPI {
 			throw new Error("YjsDocumentManager not available");
 		}
 		return this.yjsDocumentManager;
+	}
+
+	getAwareness(): Awareness {
+		if (!this.awareness) {
+			throw new Error("Awareness not available");
+		}
+		return this.awareness;
 	}
 }

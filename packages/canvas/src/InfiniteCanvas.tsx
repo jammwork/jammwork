@@ -48,6 +48,7 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 		accentColor,
 		yjsDocumentManager: documentManager,
 		mainDocument: yjsSync.mainDocument,
+		awareness: yjsSync.awareness,
 		userId,
 		roomId,
 	});
