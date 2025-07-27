@@ -10,6 +10,7 @@ interface UseYjsSyncProps {
 	backendUrl: string;
 	userId: string;
 	roomId: string;
+	accentColor?: string;
 }
 
 interface YjsSyncResult {
@@ -25,6 +26,7 @@ export const useYjsSync = ({
 	backendUrl,
 	userId,
 	roomId = "default-canvas",
+	accentColor = "#3b82f6",
 }: UseYjsSyncProps): YjsSyncResult => {
 	const mainDocRef = useRef<Y.Doc | null>(null);
 	const mainProviderRef = useRef<WebsocketProvider | null>(null);
@@ -46,8 +48,8 @@ export const useYjsSync = ({
 		// Set user awareness data
 		provider.awareness.setLocalStateField("user", {
 			id: userId,
-			name: `User ${userId}`,
-			color: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`,
+			name: userId,
+			color: accentColor,
 			cursor: { x: 0, y: 0 },
 		});
 
@@ -72,26 +74,9 @@ export const useYjsSync = ({
 			provider.awareness.setLocalState(null);
 		};
 
-		const handleVisibilityChange = () => {
-			// DISABLED: This was clearing awareness when switching tabs, preventing screen share testing
-			// if (document.visibilityState === "hidden") {
-			// 	// Clear awareness when tab becomes hidden (helps with tab switches)
-			// 	provider.awareness.setLocalState(null);
-			// } else if (document.visibilityState === "visible") {
-			// 	// Restore awareness when tab becomes visible again
-			// 	provider.awareness.setLocalStateField("user", {
-			// 		id: userId,
-			// 		name: `User ${userId}`,
-			// 		color: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`,
-			// 		cursor: { x: 0, y: 0 },
-			// 	});
-			// }
-		};
-
 		// Add event listeners for cleanup
 		window.addEventListener("beforeunload", handleBeforeUnload);
 		window.addEventListener("unload", handleBeforeUnload);
-		// DISABLED: document.addEventListener("visibilitychange", handleVisibilityChange);
 
 		mainDocRef.current = doc;
 		mainProviderRef.current = provider;
@@ -100,14 +85,13 @@ export const useYjsSync = ({
 			// Remove event listeners
 			window.removeEventListener("beforeunload", handleBeforeUnload);
 			window.removeEventListener("unload", handleBeforeUnload);
-			// DISABLED: document.removeEventListener("visibilitychange", handleVisibilityChange);
 
 			// Clear awareness state before destroying
 			provider.awareness.setLocalState(null);
 			provider.destroy();
 			doc.destroy();
 		};
-	}, []);
+	}, [accentColor]);
 
 	// Cleanup on unmount
 	useEffect(() => {

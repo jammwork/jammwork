@@ -41,6 +41,7 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 		backendUrl,
 		userId,
 		roomId,
+		accentColor,
 	});
 
 	const { api, layerComponents, pluginsLoaded } = usePluginSystem({
@@ -103,12 +104,13 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 				<UserCursorsLayer
 					awareness={yjsSync.awareness}
 					currentUserId={userId}
+					accentColor={accentColor}
 				/>
 			));
 		}
 
 		return layers;
-	}, [layerComponents, yjsSync.awareness, userId]);
+	}, [layerComponents, yjsSync.awareness, userId, accentColor]);
 
 	return (
 		<div
