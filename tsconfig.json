@@ -3,20 +3,20 @@
 	"compileOnSave": false,
 	"files": [],
 	"references": [
-		{
-			"path": "./apps/web"
-		},
-		{
-			"path": "./packages/canvas"
-		},
-		{
-			"path": "./packages/ui"
-		},
-		{
-			"path": "./packages/api"
-		},
-		{
-			"path": "./packages/plugin-screenshare"
-		}
-	]
+    {
+      "path": "./apps/web"
+    },
+    {
+      "path": "./packages/canvas"
+    },
+    {
+      "path": "./packages/ui"
+    },
+    {
+      "path": "./packages/api"
+    },
+    {
+      "path": "./packages/plugin-screenshare"
+    }
+  ]
 }

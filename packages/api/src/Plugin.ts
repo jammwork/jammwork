@@ -120,6 +120,10 @@ export interface PluginAPI {
 	getLayerComponents(): React.ComponentType[];
 	getElements(): Map<string, Element>;
 
+	// Tool highlight control
+	setToolHighlight(toolId: string, highlighted: boolean): void;
+	isToolHighlighted(toolId: string): boolean;
+
 	// Theme and styling
 	getAccentColor(): string;
 

@@ -28,6 +28,7 @@ export class PluginAPIImpl implements PluginAPI {
 	private awareness?: Awareness;
 	private userId: string;
 	private roomId: string;
+	private highlightedTools = new Set<string>();
 
 	constructor(
 		eventBus: EventBus,
@@ -338,6 +339,19 @@ export class PluginAPIImpl implements PluginAPI {
 
 	getSecondaryTools(mainToolId: string): ToolDefinition[] {
 		return this.secondaryToolsMap.get(mainToolId) || [];
+	}
+
+	// Tool highlight control
+	setToolHighlight(toolId: string, highlighted: boolean): void {
+		if (highlighted) {
+			this.highlightedTools.add(toolId);
+		} else {
+			this.highlightedTools.delete(toolId);
+		}
+	}
+
+	isToolHighlighted(toolId: string): boolean {
+		return this.highlightedTools.has(toolId);
 	}
 
 	getToolbarComponents(): React.ComponentType[] {

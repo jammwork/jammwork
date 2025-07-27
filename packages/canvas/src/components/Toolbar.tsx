@@ -93,6 +93,11 @@ function Toolbar({ pluginApi }: ToolbarProps) {
 						);
 					}
 
+					// Check if plugin has manually set this tool to be highlighted
+					if (!isHighlighted && pluginApi) {
+						isHighlighted = pluginApi.isToolHighlighted(tool.id);
+					}
+
 					return (
 						<Button
 							key={tool.id}

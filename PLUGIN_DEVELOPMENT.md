@@ -270,6 +270,13 @@ api.registerTool(
 ```
 Register a custom tool that appears in the toolbar. The `options` parameter allows you to specify secondary tools that will appear in a secondary toolbar when this tool is active.
 
+#### Tool Highlight Control
+```typescript
+api.setToolHighlight(toolId: string, highlighted: boolean): void
+api.isToolHighlighted(toolId: string): boolean
+```
+Control whether a tool appears highlighted in the toolbar, independent of the currently selected tool. Useful for indicating when a plugin feature is active (e.g., screen sharing is in progress).
+
 #### UI Components
 ```typescript
 api.registerLayerComponent(component: React.ComponentType): Disposable
@@ -443,7 +450,7 @@ api.deleteElement(elementId);
 
 ### Real-time Plugin Example: Screen Sharing
 
-Here's how a real-time screen sharing plugin uses the new awareness APIs:
+Here's how a real-time screen sharing plugin uses the new awareness APIs and tool highlight control:
 
 ```typescript
 // Screen Sharing Plugin using awareness for peer discovery
@@ -484,6 +491,28 @@ const usePeerConnection = (api: PluginAPI) => {
     });
   };
 };
+
+// Tool registration with highlight control
+api.registerTool({
+  id: "screenshare",
+  name: "Screen Share", 
+  icon: <Monitor size={16} />,
+  cursor: "default",
+  onActivate: async () => {
+    // Start screen sharing
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: true, audio: true
+    });
+    
+    // Highlight the tool to show it's active
+    api.setToolHighlight("screenshare", true);
+    
+    // Handle stream end - remove highlight
+    stream.getVideoTracks()[0].onended = () => {
+      api.setToolHighlight("screenshare", false);
+    };
+  }
+});
 ```
 
 ### Collaborative Plugin Data

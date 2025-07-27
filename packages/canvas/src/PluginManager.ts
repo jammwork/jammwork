@@ -112,6 +112,10 @@ export class PluginManager {
 			getMainTools: this.api.getMainTools.bind(this.api),
 			getSecondaryTools: this.api.getSecondaryTools.bind(this.api),
 
+			// Tool highlight control
+			setToolHighlight: this.api.setToolHighlight.bind(this.api),
+			isToolHighlighted: this.api.isToolHighlighted.bind(this.api),
+
 			// Yjs synchronization
 			getYjsDocumentManager: this.api.getYjsDocumentManager.bind(this.api),
 			getAwareness: this.api.getAwareness.bind(this.api),
