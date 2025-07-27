@@ -3,7 +3,8 @@
 	"version": "0.0.0",
 	"license": "MIT",
 	"scripts": {
-		"format": "biome format --write ."
+		"format": "biome format --write .",
+		"prepare": "husky"
 	},
 	"private": true,
 	"dependencies": {
@@ -28,6 +29,7 @@
 		"@types/react-dom": "19.0.0",
 		"@vitejs/plugin-react": "^4.2.0",
 		"@vitest/ui": "^3.0.0",
+		"husky": "^9.1.7",
 		"jiti": "2.4.2",
 		"jsdom": "~22.1.0",
 		"nx": "21.3.7",
