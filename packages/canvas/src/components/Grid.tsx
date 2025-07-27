@@ -25,6 +25,7 @@ export const Grid = () => {
 				width={CANVAS_CONSTANTS.CANVAS_SIZE}
 				height={CANVAS_CONSTANTS.CANVAS_SIZE}
 				fill="url(#dots)"
-			/></>
+			/>
+		</>
 	);
 };

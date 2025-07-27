@@ -9,7 +9,6 @@ function ThemeToggle() {
 			variant="outline"
 			size="icon"
 			onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-			className="absolute top-2 right-2 z-10"
 		>
 			{theme === "dark" ? (
 				<SunIcon className="w-4 h-4" />
