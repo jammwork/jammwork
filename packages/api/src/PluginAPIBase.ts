@@ -1,14 +1,16 @@
 import type { EventBus } from "./EventBus";
+
 import type {
-	PluginAPI,
-	ElementRenderer,
-	ToolDefinition,
-	ContextMenuItem,
-	Element,
 	CanvasState,
+	ContextMenuItem,
 	Disposable,
+	Element,
+	ElementRenderer,
+	PluginAPI,
 	PluginEvent,
 	PluginEventData,
+	ToolDefinition,
+	YjsDocumentManager,
 } from "./Plugin";
 
 export abstract class PluginAPIBase implements PluginAPI {
@@ -21,10 +23,19 @@ export abstract class PluginAPIBase implements PluginAPI {
 	protected contextMenuItems: ContextMenuItem[] = [];
 	protected layerComponents: React.ComponentType[] = [];
 	protected accentColor: string;
+	protected userId: string;
+	protected roomId: string;
 
-	constructor(eventBus: EventBus, accentColor = "#3b82f6") {
+	constructor(
+		eventBus: EventBus,
+		accentColor = "#3b82f6",
+		userId = "",
+		roomId = "",
+	) {
 		this.eventBus = eventBus;
 		this.accentColor = accentColor;
+		this.userId = userId;
+		this.roomId = roomId;
 	}
 
 	// Element management
@@ -163,6 +174,16 @@ export abstract class PluginAPIBase implements PluginAPI {
 		return this.accentColor;
 	}
 
+	// User identification
+	getUserId(): string {
+		return this.userId;
+	}
+
+	// Room identification
+	getRoomId(): string {
+		return this.roomId;
+	}
+
 	// Abstract methods that must be implemented by concrete classes
 	abstract getCanvasState(): Readonly<CanvasState>;
 	abstract getSelectedElements(): readonly string[];
@@ -181,4 +202,7 @@ export abstract class PluginAPIBase implements PluginAPI {
 	abstract selectElement(id: string): void;
 	abstract deselectElement(id: string): void;
 	abstract clearSelection(): void;
+
+	// Yjs synchronization
+	abstract getYjsDocumentManager(): YjsDocumentManager;
 }

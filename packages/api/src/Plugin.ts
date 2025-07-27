@@ -122,6 +122,12 @@ export interface PluginAPI {
 	// Theme and styling
 	getAccentColor(): string;
 
+	// User identification
+	getUserId(): string;
+
+	// Room identification
+	getRoomId(): string;
+
 	// Element operations via events
 	createElement(element: Omit<Element, "id">): string;
 	updateElement(id: string, updates: Partial<Element>): void;
@@ -130,8 +136,8 @@ export interface PluginAPI {
 	deselectElement(id: string): void;
 	clearSelection(): void;
 
-	// Yjs synchronization (optional - only available when enabled)
-	getYjsDocumentManager?(): YjsDocumentManager | undefined;
+	// Yjs synchronization
+	getYjsDocumentManager(): YjsDocumentManager;
 }
 
 export interface Plugin {
