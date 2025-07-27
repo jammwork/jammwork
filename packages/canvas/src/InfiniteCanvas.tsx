@@ -122,10 +122,7 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 				onMouseLeave={handleMouseLeave}
 				onWheel={handleWheel}
 			/>
-			<CanvasOverlay
-				pluginApi={api}
-				pluginsLoaded={pluginsLoaded}
-			/>
+			<CanvasOverlay pluginApi={api} pluginsLoaded={pluginsLoaded} />
 		</div>
 	);
 };
