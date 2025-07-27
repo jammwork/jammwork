@@ -27,7 +27,12 @@ export class PluginAPIImpl implements PluginAPI {
 	private userId: string;
 	private roomId: string;
 
-	constructor(eventBus: EventBus, accentColor = "#3b82f6", userId = "", roomId = "") {
+	constructor(
+		eventBus: EventBus,
+		accentColor = "#3b82f6",
+		userId = "",
+		roomId = "",
+	) {
 		this.eventBus = eventBus;
 		this.accentColor = accentColor;
 		this.userId = userId;

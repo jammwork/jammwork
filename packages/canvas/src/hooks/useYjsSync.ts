@@ -28,7 +28,7 @@ export const useYjsSync = ({
 }: UseYjsSyncProps): YjsSyncResult => {
 	const mainDocRef = useRef<Y.Doc | null>(null);
 	const mainProviderRef = useRef<WebsocketProvider | null>(null);
-	
+
 	// Use the separate document manager hook
 	const documentManager = useDocumentManager({
 		backendUrl,

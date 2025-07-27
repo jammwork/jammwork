@@ -34,7 +34,6 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 		roomId,
 	});
 
-
 	// Yjs synchronization (only if backend URL and user ID are provided)
 	const yjsSync = useYjsSync({
 		backendUrl: backendUrl || "",
@@ -43,7 +42,8 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 	});
 
 	// Plugin system management with documentManager - only create when documentManager is available
-	const pluginSystemReady = !!(backendUrl && userId && documentManager) || (!backendUrl && !userId);
+	const pluginSystemReady =
+		!!(backendUrl && userId && documentManager) || (!backendUrl && !userId);
 
 	const { api, layerComponents, pluginsLoaded } = usePluginSystem({
 		plugins,
@@ -123,7 +123,10 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 				onMouseLeave={handleMouseLeave}
 				onWheel={handleWheel}
 			/>
-			<CanvasOverlay pluginApi={api ?? undefined} pluginsLoaded={pluginsLoaded} />
+			<CanvasOverlay
+				pluginApi={api ?? undefined}
+				pluginsLoaded={pluginsLoaded}
+			/>
 		</div>
 	);
 };

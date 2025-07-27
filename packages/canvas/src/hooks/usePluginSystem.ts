@@ -30,7 +30,7 @@ export const usePluginSystem = ({
 
 	// Create a key for the plugin system based on important parameters
 	const pluginSystemKey = `${accentColor}-${userId}-${roomId}`;
-	
+
 	// Initialize plugin system once and keep stable reference
 	const pluginSystemRef = useRef<{
 		eventBus: EventBus;
@@ -50,15 +50,18 @@ export const usePluginSystem = ({
 	}
 
 	// Recreate plugin system if key changes or if it doesn't exist
-	if (!pluginSystemRef.current || pluginSystemRef.current.key !== pluginSystemKey) {
+	if (
+		!pluginSystemRef.current ||
+		pluginSystemRef.current.key !== pluginSystemKey
+	) {
 		const eventBus = new EventBus();
 		const api = new PluginAPIImpl(eventBus, accentColor, userId, roomId);
-		
+
 		// Set the document manager immediately when creating the API
 		if (yjsDocumentManager) {
 			api.setYjsDocumentManager(yjsDocumentManager);
 		}
-		
+
 		const manager = new PluginManager(api);
 		pluginSystemRef.current = { eventBus, api, manager, key: pluginSystemKey };
 	} else {
@@ -72,7 +75,6 @@ export const usePluginSystem = ({
 
 	// Set up synchronization
 	useEffect(() => {
-
 		if (!mainDocument) {
 			return;
 		}
@@ -197,7 +199,7 @@ export const usePluginSystem = ({
 
 		const loadPlugins = async () => {
 			if (!isMounted) return;
-			
+
 			// Don't load plugins if not enabled
 			if (!enabled) {
 				return;
@@ -233,7 +235,15 @@ export const usePluginSystem = ({
 		return () => {
 			isMounted = false;
 		};
-	}, [plugins, builtInPlugins, pluginSystem?.manager, yjsDocumentManager, userId, roomId, enabled]);
+	}, [
+		plugins,
+		builtInPlugins,
+		pluginSystem?.manager,
+		yjsDocumentManager,
+		userId,
+		roomId,
+		enabled,
+	]);
 
 	return {
 		pluginSystem,

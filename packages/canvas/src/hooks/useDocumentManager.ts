@@ -25,7 +25,6 @@ export const useDocumentManager = ({
 
 	// Only create documentManager once
 	if (!documentManagerRef.current) {
-
 		// Document manager for plugins
 		const documentManager: YjsDocumentManager = {
 			getDocument: (documentId: string) => {

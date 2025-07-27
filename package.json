@@ -3,7 +3,7 @@
 	"version": "0.0.0",
 	"license": "MIT",
 	"scripts": {
-		"format": "biome format --write . --stdin"
+		"format": "biome format --write ."
 	},
 	"private": true,
 	"dependencies": {
