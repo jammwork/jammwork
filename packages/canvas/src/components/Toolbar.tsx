@@ -61,10 +61,10 @@ function Toolbar({ pluginApi }: ToolbarProps) {
 	};
 
 	return (
-		<div className="fixed bottom-3 left-0 right-0 flex flex-col gap-1 justify-center items-center">
+		<div className="fixed bottom-3 left-0 right-0 flex flex-col gap-1 justify-center items-center pointer-events-none">
 			{/* Secondary toolbar - shown above main toolbar when available */}
 			{secondaryTools.length > 0 && (
-				<div className="p-2 bg-secondary rounded-lg shadow-lg space-x-0.5 flex items-center">
+				<div className="p-2 bg-secondary rounded-lg shadow-lg space-x-0.5 flex items-center pointer-events-auto">
 					{secondaryTools.map((tool) => (
 						<Button
 							key={tool.id}
@@ -80,7 +80,7 @@ function Toolbar({ pluginApi }: ToolbarProps) {
 			)}
 
 			{/* Main toolbar */}
-			<div className="p-2 bg-secondary rounded-lg shadow-lg space-x-0.5 flex items-center">
+			<div className="p-2 bg-secondary rounded-lg shadow-lg space-x-0.5 flex items-center pointer-events-auto">
 				{mainToolbarTools.map((tool) => {
 					// Check if this tool should be highlighted
 					let isHighlighted = toolState.activeTool === tool.id;
