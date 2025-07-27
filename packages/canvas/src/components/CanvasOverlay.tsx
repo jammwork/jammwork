@@ -19,10 +19,10 @@ export const CanvasOverlay: React.FC<CanvasOverlayProps> = React.memo(
 			<>
 				<PositionDisplay />
 				<div className="absolute top-2 right-2 z-10 flex items-center gap-2">
-					<ThemeToggle />
 					{awareness && currentUserId && (
 						<MemberList awareness={awareness} currentUserId={currentUserId} />
 					)}
+					<ThemeToggle />
 				</div>
 				{pluginsLoaded && <Toolbar pluginApi={pluginApi} />}
 			</>
