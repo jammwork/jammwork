@@ -169,6 +169,8 @@ export const useCanvasEvents = ({
 					activeTool.onMouseMove(e.nativeEvent, screenPosition);
 				} else if (toolState.activeTool === "select") {
 					selectTool?.onMouseMove?.(e.nativeEvent, screenPosition);
+				} else if (toolState.activeTool === "pan") {
+					updateDrag({ x: e.clientX, y: e.clientY });
 				}
 			} else if (toolState.activeTool === "select") {
 				selectTool?.onMouseMove?.(e.nativeEvent, screenPosition);
