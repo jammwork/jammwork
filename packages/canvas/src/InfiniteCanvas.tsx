@@ -104,7 +104,6 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 				<UserCursorsLayer
 					awareness={yjsSync.awareness}
 					currentUserId={userId}
-					accentColor={accentColor}
 				/>
 			));
 		}
