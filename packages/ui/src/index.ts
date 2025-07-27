@@ -1,3 +1,4 @@
+export { Toaster, toast } from "sonner";
 export * from "./components/ui/avatar";
 export * from "./components/ui/button";
 export * from "./components/ui/card";
@@ -10,6 +11,5 @@ export * from "./components/ui/menubar";
 export * from "./components/ui/separator";
 export * from "./components/ui/sonner";
 export * from "./components/ui/tabs";
-
 export * from "./lib/utils";
 export * from "./ThemeProvider";
