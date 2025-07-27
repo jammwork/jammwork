@@ -5,6 +5,7 @@ import { CanvasRenderer } from "./components/CanvasRenderer";
 import { UserCursorsLayer } from "./components/UserCursorsLayer";
 import { useCanvasEvents } from "./hooks/useCanvasEvents";
 import { useDocumentManager } from "./hooks/useDocumentManager";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { usePluginSystem } from "./hooks/usePluginSystem";
 import { useToolLifecycle } from "./hooks/useToolLifecycle";
 import { useViewport } from "./hooks/useViewport";
@@ -84,6 +85,9 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 
 	// Tool lifecycle management
 	useToolLifecycle({ pluginApi: api });
+
+	// Keyboard shortcuts
+	useKeyboardShortcuts({ pluginApi: api });
 
 	// Memoize container style
 	const containerStyle = useMemo(() => ({ touchAction: "none" as const }), []);

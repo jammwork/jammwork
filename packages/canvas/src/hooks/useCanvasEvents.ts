@@ -1,5 +1,5 @@
 import type { PluginAPI } from "@jammwork/api";
-import { type RefObject, useCallback, useEffect } from "react";
+import { type RefObject, useCallback } from "react";
 import { useCanvasStore } from "@/store";
 import { createSelectTool } from "@/tools/SelectTool";
 
@@ -23,76 +23,6 @@ export const useCanvasEvents = ({
 	updateCursorPosition,
 }: UseCanvasEventsProps) => {
 	const selectTool = pluginApi ? createSelectTool(pluginApi) : null;
-	// Keyboard shortcuts for tools
-	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			if (e.target !== document.body) return; // Only handle when not in input
-
-			const { setActiveTool, toolState, setSpacePressed } =
-				useCanvasStore.getState();
-
-			// Handle space bar for temporary panning
-			if (e.code === "Space" && !toolState.isSpacePressed) {
-				setSpacePressed(true);
-				e.preventDefault();
-				return;
-			}
-
-			// Don't handle other keys if space is pressed (to allow space+drag panning)
-			if (toolState.isSpacePressed) return;
-
-			// First check if the current tool handles the keydown
-			if (toolState.activeTool === "select" && selectTool?.onKeyDown) {
-				selectTool.onKeyDown(e);
-				return;
-			}
-
-			// Check if any plugin tool handles the keydown
-			if (pluginApi) {
-				const registeredTools = pluginApi.getRegisteredTools();
-				const activeTool = Array.from(registeredTools.values()).find(
-					(tool) => tool.id === toolState.activeTool,
-				);
-
-				if (activeTool?.onKeyDown) {
-					activeTool.onKeyDown(e);
-					return;
-				}
-			}
-
-			// Handle tool switching shortcuts
-			switch (e.key.toLowerCase()) {
-				case "v":
-					setActiveTool("select");
-					e.preventDefault();
-					break;
-				case "h":
-					setActiveTool("pan");
-					e.preventDefault();
-					break;
-			}
-		};
-
-		const handleKeyUp = (e: KeyboardEvent) => {
-			if (e.target !== document.body) return;
-
-			const { setSpacePressed, setSpacePanning } = useCanvasStore.getState();
-
-			// Handle space bar release
-			if (e.code === "Space") {
-				setSpacePressed(false);
-				setSpacePanning(false);
-				e.preventDefault();
-			}
-		};
-
-		document.addEventListener("keydown", handleKeyDown);
-		document.addEventListener("keyup", handleKeyUp);
-		return () => {
-			document.removeEventListener("keydown", handleKeyDown);
-			document.removeEventListener("keyup", handleKeyUp);
-		};
-	}, [selectTool, pluginApi]);
 
 	const handleMouseDown = useCallback(
 		(e: React.MouseEvent) => {
