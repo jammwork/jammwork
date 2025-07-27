@@ -3,9 +3,9 @@ export const CANVAS_CONSTANTS = {
 	CANVAS_OFFSET: -100000,
 	GRID_SIZE: 20,
 	DOT_SIZE: 0.5,
-	DOT_OPACITY: 0.4,
+	DOT_OPACITY: 1,
 	COLORS: {
-		GRID_DOT: "hsl(var(--border))",
+		GRID_DOT: "var(--grid-dot)",
 	},
 	ZOOM: {
 		MIN: 0.1,

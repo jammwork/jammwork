@@ -70,8 +70,9 @@ function HomePage() {
 								<button
 									key={color}
 									type="button"
-									className={`w-6 h-6 rounded-md transition-opacity cursor-pointer ${selectedColor === color ? "opacity-100" : "opacity-50"
-										}`}
+									className={`w-6 h-6 rounded-md transition-opacity cursor-pointer ${
+										selectedColor === color ? "opacity-100" : "opacity-50"
+									}`}
 									style={{ backgroundColor: color }}
 									onClick={() => setSelectedColor(color)}
 								/>
