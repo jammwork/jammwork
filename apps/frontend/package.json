@@ -13,6 +13,7 @@
 		"tw-animate-css": "^1.3.6"
 	},
 	"dependencies": {
+		"@fontsource/ubuntu": "^5.2.6",
 		"@jammwork/canvas": "workspace:*",
 		"@jammwork/plugin-screenshare": "workspace:*",
 		"@jammwork/ui": "workspace:*",

@@ -1,7 +1,6 @@
 import { Route, Routes } from "react-router-dom";
-
-import HomePage from "@/pages/HomePage";
 import EditorPage from "@/pages/EditorPage";
+import HomePage from "@/pages/HomePage";
 
 function App() {
 	return (

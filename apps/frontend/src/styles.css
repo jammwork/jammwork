@@ -2,3 +2,7 @@
 
 @source "../../../packages/ui/src/";
 @source "../../../packages/canvas/src/";
+
+body {
+	font-family: "Ubuntu", sans-serif;
+}
