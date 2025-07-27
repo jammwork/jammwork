@@ -306,27 +306,55 @@ api.registerElementType(type: string, renderer: ElementRenderer): Disposable
 
 #### Real-time Collaboration (Yjs Integration)
 ```typescript
-api.getYjsDocumentManager?(): YjsDocumentManager | undefined
+api.getYjsDocumentManager(): YjsDocumentManager
+api.getAwareness(): Awareness
+api.getUserId(): string
+api.getRoomId(): string
 ```
 
-The canvas supports real-time collaboration through Yjs synchronization. When enabled, plugins can access the Yjs document manager to create their own synchronized documents:
+The canvas supports real-time collaboration through Yjs synchronization. When enabled, plugins can access:
+
+- **Document Manager**: Create and manage synchronized Yjs documents for plugin data
+- **Awareness**: Access real-time user presence and state information
+- **User Identity**: Get the current user's unique identifier
+- **Room Context**: Get the current collaboration room identifier
+
+Plugins can use these APIs to create their own synchronized documents and track user presence:
 
 ```typescript
-// Check if Yjs is available
-const yjsManager = api.getYjsDocumentManager?.();
-if (yjsManager) {
-  // Create or get a document for your plugin
-  const pluginDoc = yjsManager.getDocument("my-plugin-data");
-  
-  // Use Yjs shared types
-  const sharedArray = pluginDoc.getArray("items");
-  const sharedMap = pluginDoc.getMap("settings");
-  
-  // Listen to changes
-  sharedArray.observe(() => {
-    console.log("Plugin data synchronized");
-  });
-}
+// Get user and room context
+const userId = api.getUserId();
+const roomId = api.getRoomId();
+
+// Access Yjs document manager
+const yjsManager = api.getYjsDocumentManager();
+const pluginDoc = yjsManager.getDocument("my-plugin-data");
+
+// Use Yjs shared types
+const sharedArray = pluginDoc.getArray("items");
+const sharedMap = pluginDoc.getMap("settings");
+
+// Listen to changes
+sharedArray.observe(() => {
+  console.log("Plugin data synchronized");
+});
+
+// Access user awareness for presence tracking
+const awareness = api.getAwareness();
+const currentUsers = Array.from(awareness.getStates().values());
+
+// Listen for user presence changes
+awareness.on("change", () => {
+  const users = Array.from(awareness.getStates().values());
+  console.log("Users in room:", users.length);
+});
+
+// Set custom awareness state for your plugin
+awareness.setLocalStateField("myPlugin", {
+  userId,
+  status: "active",
+  data: { /* plugin-specific data */ }
+});
 ```
 
 **YjsDocumentManager Interface:**
@@ -413,31 +441,75 @@ api.updateElement(elementId, { x: 200 });
 api.deleteElement(elementId);
 ```
 
+### Real-time Plugin Example: Screen Sharing
+
+Here's how a real-time screen sharing plugin uses the new awareness APIs:
+
+```typescript
+// Screen Sharing Plugin using awareness for peer discovery
+const usePeerConnection = (api: PluginAPI) => {
+  const userId = api.getUserId();
+  const roomId = api.getRoomId();
+  const awareness = api.getAwareness();
+
+  // Track other users for peer-to-peer connections
+  useEffect(() => {
+    const handleAwarenessChange = () => {
+      const states = Array.from(awareness.getStates().values());
+      
+      // Find other users to establish peer connections
+      states.forEach((state) => {
+        const remoteUser = state.user;
+        if (remoteUser && remoteUser.id !== userId) {
+          // Establish PeerJS connection with remote user
+          establishPeerConnection(remoteUser.id);
+        }
+      });
+    };
+
+    awareness.on("change", handleAwarenessChange);
+    return () => awareness.off("change", handleAwarenessChange);
+  }, [awareness, userId]);
+
+  const broadcastStream = (stream: MediaStream) => {
+    // Use awareness to find all connected users
+    const states = Array.from(awareness.getStates().values());
+    
+    states.forEach((state) => {
+      const remoteUser = state.user;
+      if (remoteUser && remoteUser.id !== userId) {
+        // Call each user with the screen share stream
+        callUser(remoteUser.id, stream);
+      }
+    });
+  };
+};
+```
+
 ### Collaborative Plugin Data
 
 For plugin-specific data that needs to be synchronized:
 
 ```typescript
 // In your plugin activation
-const yjsManager = api.getYjsDocumentManager?.();
-if (yjsManager) {
-  const pluginDoc = yjsManager.getDocument("text-annotations");
-  const annotations = pluginDoc.getArray("items");
-  
-  // Add collaborative annotation
-  annotations.push([{
-    id: "annotation-1",
-    text: "This is a shared comment",
-    position: { x: 100, y: 100 },
-    author: "user-123"
-  }]);
-  
-  // Listen for changes from other users
-  annotations.observe(() => {
-    // Update your plugin UI when other users add annotations
-    updateAnnotationLayer();
-  });
-}
+const userId = api.getUserId();
+const yjsManager = api.getYjsDocumentManager();
+const pluginDoc = yjsManager.getDocument("text-annotations");
+const annotations = pluginDoc.getArray("items");
+
+// Add collaborative annotation
+annotations.push([{
+  id: "annotation-1",
+  text: "This is a shared comment",
+  position: { x: 100, y: 100 },
+  author: userId
+}]);
+
+// Listen for changes from other users
+annotations.observe(() => {
+  // Update your plugin UI when other users add annotations
+  updateAnnotationLayer();
+});
 ```
 
 ## Best Practices
@@ -453,9 +525,30 @@ if (yjsManager) {
 - Clean up event listeners in deactivate()
 
 ### 3. State Management
-- Use Zustand for plugin-specific state
+- Use Zustand for plugin-specific state with proper TypeScript typing
 - Don't mutate canvas state directly
 - Use the PluginAPI for state changes
+- Avoid `globalThis` - use proper dependency injection patterns:
+
+```typescript
+// Good: Typed Zustand store with implementation injection
+interface PluginState {
+  isActive: boolean;
+  startFeature: () => Promise<string>;
+}
+
+const usePluginStore = create<PluginState>(() => ({
+  isActive: false,
+  startFeature: async () => { throw new Error("Not implemented"); }
+}));
+
+const setPluginImplementation = (startFn: () => Promise<string>) => {
+  usePluginStore.setState({ startFeature: startFn });
+};
+
+// Bad: Using globalThis
+(globalThis as any).__plugin = { start: startFn };
+```
 
 ### 4. Real-time Collaboration
 - Always use `api.createElement()`, `api.updateElement()`, and `api.deleteElement()` for element operations
@@ -468,12 +561,14 @@ if (yjsManager) {
     changes: { x: newX, y: newY } 
   });
   ```
-- Check for Yjs availability before using collaborative features:
+- Use the new collaboration APIs for real-time features:
   ```typescript
-  const yjsManager = api.getYjsDocumentManager?.();
-  if (yjsManager) {
-    // Use collaborative features
-  }
+  const userId = api.getUserId();
+  const roomId = api.getRoomId();
+  const awareness = api.getAwareness();
+  const yjsManager = api.getYjsDocumentManager();
+  
+  // Always available in collaboration-enabled canvas
   ```
 - Don't rely on element ownership - any user can modify any element
 - Handle graceful degradation when real-time features are unavailable
