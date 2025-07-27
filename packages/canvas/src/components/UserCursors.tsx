@@ -1,8 +1,9 @@
-import { TinyColor } from '@ctrl/tinycolor';
+import { TinyColor } from "@ctrl/tinycolor";
 import { MousePointer2 } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import type { Awareness } from "y-protocols/awareness";
+import { useCanvasStore } from "@/store";
 
 interface UserCursor {
 	id: string;
@@ -23,6 +24,7 @@ export const UserCursors: React.FC<UserCursorsProps> = ({
 }) => {
 	const [otherUsers, setOtherUsers] = useState<UserCursor[]>([]);
 	const cleanupIntervalRef = useRef<NodeJS.Timeout | null>(null);
+	const { viewBox } = useCanvasStore();
 
 	useEffect(() => {
 		if (!awareness) return;
@@ -67,16 +69,19 @@ export const UserCursors: React.FC<UserCursorsProps> = ({
 		};
 	}, [awareness, currentUserId]);
 
-
+	const inverseScale = 1 / viewBox.zoom;
 
 	return (
 		<>
 			{otherUsers.map((user) => (
-				<g key={user.id}>
+				<g
+					key={user.id}
+					transform={`translate(${user.cursor.x}, ${user.cursor.y}) scale(${inverseScale})`}
+				>
 					{/* Cursor */}
 					<foreignObject
-						x={user.cursor.x}
-						y={user.cursor.y}
+						x={0}
+						y={0}
 						width="24"
 						height="24"
 						style={{ pointerEvents: "none" }}
@@ -95,9 +100,9 @@ export const UserCursors: React.FC<UserCursorsProps> = ({
 
 					{/* User name label */}
 					<foreignObject
-						x={user.cursor.x + 18}
-						y={user.cursor.y - 8}
-						width="120"
+						x={25}
+						y={-8}
+						width="80"
 						height="24"
 						style={{ pointerEvents: "none" }}
 					>
@@ -109,7 +114,7 @@ export const UserCursors: React.FC<UserCursorsProps> = ({
 								padding: "2px 6px",
 								borderRadius: "4px",
 								whiteSpace: "nowrap",
-								fontFamily: "system-ui, sans-serif",
+								fontFamily: "Ubuntu, sans-serif",
 								fontWeight: "500",
 								boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
 							}}

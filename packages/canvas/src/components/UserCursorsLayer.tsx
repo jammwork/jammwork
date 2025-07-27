@@ -11,10 +11,5 @@ export const UserCursorsLayer: React.FC<UserCursorsLayerProps> = ({
 	awareness,
 	currentUserId,
 }) => {
-	return (
-		<UserCursors
-			awareness={awareness}
-			currentUserId={currentUserId}
-		/>
-	);
+	return <UserCursors awareness={awareness} currentUserId={currentUserId} />;
 };
