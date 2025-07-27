@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
 import type { Awareness } from "y-protocols/awareness";
 import { WebsocketProvider } from "y-websocket";
 import * as Y from "yjs";
+import { useDocumentManager } from "./useDocumentManager";
 
 interface UseYjsSyncProps {
 	backendUrl: string;
@@ -14,7 +15,7 @@ interface UseYjsSyncProps {
 interface YjsSyncResult {
 	mainDocument: Y.Doc | null;
 	mainProvider: WebsocketProvider | null;
-	documentManager: YjsDocumentManager;
+	documentManager: YjsDocumentManager | null;
 	isConnected: boolean;
 	awareness: Awareness | undefined;
 	updateCursorPosition: (x: number, y: number) => void;
@@ -25,10 +26,15 @@ export const useYjsSync = ({
 	userId,
 	roomId = "default-canvas",
 }: UseYjsSyncProps): YjsSyncResult => {
-	const documentsRef = useRef<Map<string, Y.Doc>>(new Map());
-	const providersRef = useRef<Map<string, WebsocketProvider>>(new Map());
 	const mainDocRef = useRef<Y.Doc | null>(null);
 	const mainProviderRef = useRef<WebsocketProvider | null>(null);
+	
+	// Use the separate document manager hook
+	const documentManager = useDocumentManager({
+		backendUrl,
+		userId,
+		roomId,
+	});
 
 	// Initialize main canvas document
 	useEffect(() => {
@@ -102,67 +108,9 @@ export const useYjsSync = ({
 		};
 	}, [backendUrl, roomId, userId]);
 
-	// Document manager for plugins
-	const documentManager: YjsDocumentManager = {
-		getDocument: useCallback(
-			(documentId: string) => {
-				let doc = documentsRef.current.get(documentId);
-				if (!doc) {
-					doc = new Y.Doc();
-					documentsRef.current.set(documentId, doc);
-
-					const provider = new WebsocketProvider(
-						backendUrl,
-						`${roomId}-${documentId}`,
-						doc,
-					);
-					provider.awareness.setLocalStateField("user", {
-						id: userId,
-						name: `User ${userId}`,
-						documentId,
-					});
-					providersRef.current.set(documentId, provider);
-				}
-				return doc;
-			},
-			[backendUrl, roomId, userId],
-		),
-
-		createDocument: useCallback((documentId: string) => {
-			if (documentsRef.current.has(documentId)) {
-				throw new Error(`Document ${documentId} already exists`);
-			}
-			return documentManager.getDocument(documentId);
-		}, []),
-
-		deleteDocument: useCallback((documentId: string) => {
-			const doc = documentsRef.current.get(documentId);
-			const provider = providersRef.current.get(documentId);
-
-			if (doc) {
-				doc.destroy();
-				documentsRef.current.delete(documentId);
-			}
-
-			if (provider) {
-				provider.destroy();
-				providersRef.current.delete(documentId);
-			}
-		}, []),
-
-		getProvider: useCallback((documentId: string): unknown => {
-			return providersRef.current.get(documentId);
-		}, []),
-	};
-
 	// Cleanup on unmount
 	useEffect(() => {
 		return () => {
-			// Cleanup all plugin documents
-			for (const [documentId] of documentsRef.current) {
-				documentManager.deleteDocument(documentId);
-			}
-
 			// Cleanup main document
 			if (mainProviderRef.current) {
 				mainProviderRef.current.destroy();

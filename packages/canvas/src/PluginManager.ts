@@ -3,7 +3,6 @@ import type {
 	Plugin,
 	PluginAPI,
 	PluginManagerConfig,
-	ToolDefinition,
 } from "@jammwork/api";
 import { EventBus } from "@jammwork/api";
 
@@ -99,6 +98,10 @@ export class PluginManager {
 			// Theme and styling
 			getAccentColor: this.api.getAccentColor.bind(this.api),
 
+			// User identification
+			getUserId: this.api.getUserId.bind(this.api),
+			getRoomId: this.api.getRoomId.bind(this.api),
+
 			// Element operations
 			createElement: this.api.createElement.bind(this.api),
 			updateElement: this.api.updateElement.bind(this.api),
@@ -106,12 +109,11 @@ export class PluginManager {
 			selectElement: this.api.selectElement.bind(this.api),
 			deselectElement: this.api.deselectElement.bind(this.api),
 			clearSelection: this.api.clearSelection.bind(this.api),
-			getMainTools: (): Map<string, ToolDefinition> => {
-				throw new Error("Function not implemented.");
-			},
-			getSecondaryTools: (_mainToolId: string): ToolDefinition[] => {
-				throw new Error("Function not implemented.");
-			},
+			getMainTools: this.api.getMainTools.bind(this.api),
+			getSecondaryTools: this.api.getSecondaryTools.bind(this.api),
+
+			// Yjs synchronization - THIS WAS MISSING!
+			getYjsDocumentManager: this.api.getYjsDocumentManager.bind(this.api),
 		};
 
 		try {

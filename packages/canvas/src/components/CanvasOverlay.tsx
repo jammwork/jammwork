@@ -5,7 +5,7 @@ import ThemeToggle from "./ThemeToggle";
 import Toolbar from "./Toolbar";
 
 interface CanvasOverlayProps {
-	pluginApi: PluginAPI;
+	pluginApi?: PluginAPI;
 	pluginsLoaded: boolean;
 }
 
@@ -15,7 +15,7 @@ export const CanvasOverlay: React.FC<CanvasOverlayProps> = React.memo(
 			<>
 				<PositionDisplay />
 				<ThemeToggle />
-				{pluginsLoaded && <Toolbar pluginApi={pluginApi} />}
+				{pluginsLoaded && pluginApi && <Toolbar pluginApi={pluginApi} />}
 			</>
 		);
 	},

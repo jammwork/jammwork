@@ -10,10 +10,11 @@ import { ShapesPlugin } from "../plugins/shapes";
 interface UsePluginSystemProps {
 	plugins?: Plugin[];
 	accentColor?: string;
-	yjsDocumentManager?: YjsDocumentManager;
+	yjsDocumentManager?: YjsDocumentManager | null;
 	mainDocument?: Y.Doc | null;
 	userId?: string;
 	roomId?: string;
+	enabled?: boolean;
 }
 
 export const usePluginSystem = ({
@@ -23,30 +24,54 @@ export const usePluginSystem = ({
 	mainDocument,
 	userId = "",
 	roomId = "",
+	enabled = true,
 }: UsePluginSystemProps = {}) => {
 	const [pluginsLoaded, setPluginsLoaded] = useState(false);
 
+	// Create a key for the plugin system based on important parameters
+	const pluginSystemKey = `${accentColor}-${userId}-${roomId}`;
+	
 	// Initialize plugin system once and keep stable reference
 	const pluginSystemRef = useRef<{
 		eventBus: EventBus;
 		api: PluginAPIImpl;
 		manager: PluginManager;
+		key: string;
 	} | null>(null);
 
-	if (!pluginSystemRef.current) {
+	// Only create plugin system when enabled
+	if (!enabled) {
+		return {
+			pluginSystem: null,
+			api: null,
+			layerComponents: [],
+			pluginsLoaded: false,
+		};
+	}
+
+	// Recreate plugin system if key changes or if it doesn't exist
+	if (!pluginSystemRef.current || pluginSystemRef.current.key !== pluginSystemKey) {
 		const eventBus = new EventBus();
 		const api = new PluginAPIImpl(eventBus, accentColor, userId, roomId);
+		
+		// Set the document manager immediately when creating the API
+		if (yjsDocumentManager) {
+			api.setYjsDocumentManager(yjsDocumentManager);
+		}
+		
 		const manager = new PluginManager(api);
-		pluginSystemRef.current = { eventBus, api, manager };
+		pluginSystemRef.current = { eventBus, api, manager, key: pluginSystemKey };
+	} else {
+		// Plugin system exists, but make sure it has the latest documentManager
+		if (yjsDocumentManager) {
+			pluginSystemRef.current.api.setYjsDocumentManager(yjsDocumentManager);
+		}
 	}
 
 	const pluginSystem = pluginSystemRef.current;
 
-	// Set the document manager if provided and set up synchronization
+	// Set up synchronization
 	useEffect(() => {
-		if (yjsDocumentManager) {
-			pluginSystem.api.setYjsDocumentManager(yjsDocumentManager);
-		}
 
 		if (!mainDocument) {
 			return;
@@ -156,11 +181,11 @@ export const usePluginSystem = ({
 	}, [yjsDocumentManager, mainDocument, pluginSystem.api]);
 
 	// Stable API reference
-	const stableApi = useMemo(() => pluginSystem.api, []);
+	const stableApi = useMemo(() => pluginSystem?.api || null, [pluginSystem]);
 
 	// Memoize layer components to prevent infinite re-renders
 	const layerComponents = useMemo(() => {
-		return pluginsLoaded ? stableApi.getLayerComponents() : [];
+		return pluginsLoaded && stableApi ? stableApi.getLayerComponents() : [];
 	}, [pluginsLoaded, stableApi]);
 
 	// Memoize built-in plugins to prevent recreating array on every render
@@ -172,6 +197,11 @@ export const usePluginSystem = ({
 
 		const loadPlugins = async () => {
 			if (!isMounted) return;
+			
+			// Don't load plugins if not enabled
+			if (!enabled) {
+				return;
+			}
 
 			// Only reload if plugins array actually changed
 			const currentPlugins = pluginSystem.manager.getLoadedPlugins();
@@ -203,7 +233,7 @@ export const usePluginSystem = ({
 		return () => {
 			isMounted = false;
 		};
-	}, [plugins, builtInPlugins, pluginSystem.manager]);
+	}, [plugins, builtInPlugins, pluginSystem?.manager, yjsDocumentManager, userId, roomId, enabled]);
 
 	return {
 		pluginSystem,

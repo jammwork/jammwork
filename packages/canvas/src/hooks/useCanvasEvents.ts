@@ -5,7 +5,7 @@ import { createSelectTool } from "@/tools/SelectTool";
 
 interface UseCanvasEventsProps {
 	svgRef: RefObject<SVGSVGElement | null>;
-	pluginApi: PluginAPI;
+	pluginApi?: PluginAPI;
 	startDrag: (position: { x: number; y: number }) => void;
 	updateDrag: (position: { x: number; y: number }) => void;
 	endDrag: () => void;
@@ -22,7 +22,7 @@ export const useCanvasEvents = ({
 	zoomAt,
 	updateCursorPosition,
 }: UseCanvasEventsProps) => {
-	const selectTool = createSelectTool(pluginApi);
+	const selectTool = pluginApi ? createSelectTool(pluginApi) : null;
 	// Keyboard shortcuts for tools
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
@@ -42,20 +42,22 @@ export const useCanvasEvents = ({
 			if (toolState.isSpacePressed) return;
 
 			// First check if the current tool handles the keydown
-			if (toolState.activeTool === "select" && selectTool.onKeyDown) {
+			if (toolState.activeTool === "select" && selectTool?.onKeyDown) {
 				selectTool.onKeyDown(e);
 				return;
 			}
 
 			// Check if any plugin tool handles the keydown
-			const registeredTools = pluginApi.getRegisteredTools();
-			const activeTool = Array.from(registeredTools.values()).find(
-				(tool) => tool.id === toolState.activeTool,
-			);
+			if (pluginApi) {
+				const registeredTools = pluginApi.getRegisteredTools();
+				const activeTool = Array.from(registeredTools.values()).find(
+					(tool) => tool.id === toolState.activeTool,
+				);
 
-			if (activeTool?.onKeyDown) {
-				activeTool.onKeyDown(e);
-				return;
+				if (activeTool?.onKeyDown) {
+					activeTool.onKeyDown(e);
+					return;
+				}
 			}
 
 			// Handle tool switching shortcuts
@@ -111,15 +113,21 @@ export const useCanvasEvents = ({
 			}
 
 			// Check if there's an active plugin tool
-			const registeredTools = pluginApi.getRegisteredTools();
-			const activeTool = Array.from(registeredTools.values()).find(
-				(tool) => tool.id === toolState.activeTool,
-			);
+			if (pluginApi) {
+				const registeredTools = pluginApi.getRegisteredTools();
+				const activeTool = Array.from(registeredTools.values()).find(
+					(tool) => tool.id === toolState.activeTool,
+				);
 
-			if (activeTool?.onMouseDown) {
-				activeTool.onMouseDown(e.nativeEvent, screenPosition);
+				if (activeTool?.onMouseDown) {
+					activeTool.onMouseDown(e.nativeEvent, screenPosition);
+				} else if (toolState.activeTool === "select") {
+					selectTool?.onMouseDown?.(e.nativeEvent, screenPosition);
+				} else if (toolState.activeTool === "pan") {
+					startDrag({ x: e.clientX, y: e.clientY });
+				}
 			} else if (toolState.activeTool === "select") {
-				selectTool.onMouseDown?.(e.nativeEvent, screenPosition);
+				selectTool?.onMouseDown?.(e.nativeEvent, screenPosition);
 			} else if (toolState.activeTool === "pan") {
 				startDrag({ x: e.clientX, y: e.clientY });
 			}
@@ -139,7 +147,7 @@ export const useCanvasEvents = ({
 			};
 
 			// Update cursor position for collaborative cursors
-			if (updateCursorPosition) {
+			if (updateCursorPosition && pluginApi) {
 				const canvasPosition = pluginApi.screenToCanvas(screenPosition);
 				updateCursorPosition(canvasPosition.x, canvasPosition.y);
 			}
@@ -151,15 +159,19 @@ export const useCanvasEvents = ({
 			}
 
 			// Check if there's an active plugin tool
-			const registeredTools = pluginApi.getRegisteredTools();
-			const activeTool = Array.from(registeredTools.values()).find(
-				(tool) => tool.id === toolState.activeTool,
-			);
+			if (pluginApi) {
+				const registeredTools = pluginApi.getRegisteredTools();
+				const activeTool = Array.from(registeredTools.values()).find(
+					(tool) => tool.id === toolState.activeTool,
+				);
 
-			if (activeTool?.onMouseMove) {
-				activeTool.onMouseMove(e.nativeEvent, screenPosition);
+				if (activeTool?.onMouseMove) {
+					activeTool.onMouseMove(e.nativeEvent, screenPosition);
+				} else if (toolState.activeTool === "select") {
+					selectTool?.onMouseMove?.(e.nativeEvent, screenPosition);
+				}
 			} else if (toolState.activeTool === "select") {
-				selectTool.onMouseMove?.(e.nativeEvent, screenPosition);
+				selectTool?.onMouseMove?.(e.nativeEvent, screenPosition);
 			} else if (toolState.activeTool === "pan") {
 				updateDrag({ x: e.clientX, y: e.clientY });
 			}
@@ -186,15 +198,21 @@ export const useCanvasEvents = ({
 			}
 
 			// Check if there's an active plugin tool
-			const registeredTools = pluginApi.getRegisteredTools();
-			const activeTool = Array.from(registeredTools.values()).find(
-				(tool) => tool.id === toolState.activeTool,
-			);
+			if (pluginApi) {
+				const registeredTools = pluginApi.getRegisteredTools();
+				const activeTool = Array.from(registeredTools.values()).find(
+					(tool) => tool.id === toolState.activeTool,
+				);
 
-			if (activeTool?.onMouseUp) {
-				activeTool.onMouseUp(e.nativeEvent, screenPosition);
+				if (activeTool?.onMouseUp) {
+					activeTool.onMouseUp(e.nativeEvent, screenPosition);
+				} else if (toolState.activeTool === "select") {
+					selectTool?.onMouseUp?.(e.nativeEvent, screenPosition);
+				} else {
+					endDrag();
+				}
 			} else if (toolState.activeTool === "select") {
-				selectTool.onMouseUp?.(e.nativeEvent, screenPosition);
+				selectTool?.onMouseUp?.(e.nativeEvent, screenPosition);
 			} else {
 				endDrag();
 			}
