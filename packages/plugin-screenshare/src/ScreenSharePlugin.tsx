@@ -30,6 +30,9 @@ const ScreenShareManager: React.FC<{ api: PluginAPI }> = ({ api }) => {
 			// Broadcast to peers
 			broadcastStream(stream);
 
+			// Highlight the screen share tool to indicate active sharing
+			api.setToolHighlight("screenshare", true);
+
 			// Create canvas element
 			const element = {
 				type: "screenshare",
@@ -51,6 +54,8 @@ const ScreenShareManager: React.FC<{ api: PluginAPI }> = ({ api }) => {
 				streamManager.removeStream(predictableStreamId);
 				stopBroadcast();
 				api.deleteElement(elementId);
+				// Remove highlight when sharing stops
+				api.setToolHighlight("screenshare", false);
 			};
 
 			return elementId;
@@ -58,6 +63,8 @@ const ScreenShareManager: React.FC<{ api: PluginAPI }> = ({ api }) => {
 
 		const stopScreenShare = (): void => {
 			stopBroadcast();
+			// Remove highlight when manually stopping
+			api.setToolHighlight("screenshare", false);
 		};
 
 		// Set the implementation in the Zustand store
