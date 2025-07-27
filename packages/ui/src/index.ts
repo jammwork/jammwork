@@ -1,4 +1,5 @@
 export { Toaster, toast } from "sonner";
+export * from "./components/ui/alert-dialog";
 export * from "./components/ui/avatar";
 export * from "./components/ui/button";
 export * from "./components/ui/card";
