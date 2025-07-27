@@ -1,11 +1,13 @@
 import { InfiniteCanvas } from "@jammwork/canvas";
 import { ScreenSharePlugin } from "@jammwork/plugin-screenshare";
 import { useParams } from "react-router-dom";
+import { getRandomPastelColor } from "@/lib/colors";
 
 function EditorPage() {
 	const { roomId } = useParams();
 
 	const name = localStorage.getItem("name");
+	const color = localStorage.getItem("color") ?? getRandomPastelColor();
 
 	if (!roomId || !name) {
 		return <div>Room not found</div>;
@@ -17,7 +19,7 @@ function EditorPage() {
 				backendUrl="ws://localhost:1234"
 				userId={name}
 				roomId={roomId}
-				accentColor="#8b5cf6"
+				accentColor={color}
 				plugins={[ScreenSharePlugin]}
 			/>
 		</div>

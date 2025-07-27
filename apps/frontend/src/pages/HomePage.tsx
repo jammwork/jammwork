@@ -10,14 +10,22 @@ import {
 } from "@jammwork/ui";
 import { Heart } from "lucide-react";
 import { nanoid } from "nanoid";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getRandomPastelColor, pastelColors } from "@/lib/colors";
 
 function HomePage() {
 	const navigate = useNavigate();
 	const nameRef = useRef<HTMLInputElement>(null);
 
 	const defaultName = localStorage.getItem("name");
+	const defaultColor = localStorage.getItem("color") ?? getRandomPastelColor();
+
+	const [selectedColor, setSelectedColor] = useState(defaultColor);
+
+	useEffect(() => {
+		localStorage.setItem("color", selectedColor);
+	}, [selectedColor]);
 
 	function handleSubmit() {
 		const roomId = nanoid();
@@ -56,6 +64,20 @@ function HomePage() {
 						placeholder="Your name"
 						ref={nameRef}
 					/>
+					{
+						<div className="flex items-center gap-2">
+							{pastelColors.map((color) => (
+								<button
+									key={color}
+									type="button"
+									className={`w-6 h-6 rounded-md transition-opacity cursor-pointer ${selectedColor === color ? "opacity-100" : "opacity-50"
+										}`}
+									style={{ backgroundColor: color }}
+									onClick={() => setSelectedColor(color)}
+								/>
+							))}
+						</div>
+					}
 				</CardContent>
 				<CardFooter>
 					<Button onClick={handleSubmit}>Submit</Button>
