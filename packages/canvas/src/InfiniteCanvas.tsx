@@ -6,6 +6,7 @@ import { UserCursorsLayer } from "./components/UserCursorsLayer";
 import { useCanvasEvents } from "./hooks/useCanvasEvents";
 import { useDocumentManager } from "./hooks/useDocumentManager";
 import { usePluginSystem } from "./hooks/usePluginSystem";
+import { useToolLifecycle } from "./hooks/useToolLifecycle";
 import { useViewport } from "./hooks/useViewport";
 import { useYjsSync } from "./hooks/useYjsSync";
 import { useZoomPrevention } from "./hooks/useZoomPrevention";
@@ -29,21 +30,17 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 
 	// Document manager - create first to ensure it's available for plugin system
 	const documentManager = useDocumentManager({
-		backendUrl: backendUrl || "",
-		userId: userId || "",
+		backendUrl,
+		userId,
 		roomId,
 	});
 
 	// Yjs synchronization (only if backend URL and user ID are provided)
 	const yjsSync = useYjsSync({
-		backendUrl: backendUrl || "",
-		userId: userId || "",
+		backendUrl,
+		userId,
 		roomId,
 	});
-
-	// Plugin system management with documentManager - only create when documentManager is available
-	const pluginSystemReady =
-		!!(backendUrl && userId && documentManager) || (!backendUrl && !userId);
 
 	const { api, layerComponents, pluginsLoaded } = usePluginSystem({
 		plugins,
@@ -52,7 +49,6 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 		mainDocument: yjsSync.mainDocument,
 		userId,
 		roomId,
-		enabled: pluginSystemReady,
 	});
 
 	// Viewport and canvas state
@@ -64,7 +60,7 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 		updateDrag,
 		endDrag,
 		zoomAt,
-	} = useViewport({ pluginApi: api || undefined });
+	} = useViewport({ pluginApi: api });
 
 	// Mouse and keyboard event handlers
 	const {
@@ -75,7 +71,7 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 		handleWheel,
 	} = useCanvasEvents({
 		svgRef,
-		pluginApi: api || undefined,
+		pluginApi: api,
 		startDrag,
 		updateDrag,
 		endDrag,
@@ -85,6 +81,9 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 
 	// Zoom prevention setup
 	useZoomPrevention({ svgRef, zoomAt });
+
+	// Tool lifecycle management
+	useToolLifecycle({ pluginApi: api });
 
 	// Memoize container style
 	const containerStyle = useMemo(() => ({ touchAction: "none" as const }), []);
@@ -124,7 +123,7 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 				onWheel={handleWheel}
 			/>
 			<CanvasOverlay
-				pluginApi={api ?? undefined}
+				pluginApi={api}
 				pluginsLoaded={pluginsLoaded}
 			/>
 		</div>

@@ -13,14 +13,16 @@ export const useDocumentManager = ({
 	backendUrl,
 	userId,
 	roomId = "default-canvas",
-}: UseDocumentManagerProps): YjsDocumentManager | null => {
+}: UseDocumentManagerProps): YjsDocumentManager => {
 	const documentsRef = useRef<Map<string, Y.Doc>>(new Map());
 	const providersRef = useRef<Map<string, WebsocketProvider>>(new Map());
 	const documentManagerRef = useRef<YjsDocumentManager | null>(null);
 
 	// Don't create document manager if required parameters are missing
 	if (!backendUrl || !userId) {
-		return null;
+		throw new Error(
+			"Missing required parameters: backendUrl and userId are required",
+		);
 	}
 
 	// Only create documentManager once

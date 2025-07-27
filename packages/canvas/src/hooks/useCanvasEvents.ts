@@ -5,7 +5,7 @@ import { createSelectTool } from "@/tools/SelectTool";
 
 interface UseCanvasEventsProps {
 	svgRef: RefObject<SVGSVGElement | null>;
-	pluginApi?: PluginAPI;
+	pluginApi: PluginAPI;
 	startDrag: (position: { x: number; y: number }) => void;
 	updateDrag: (position: { x: number; y: number }) => void;
 	endDrag: () => void;

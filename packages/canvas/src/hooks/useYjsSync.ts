@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/style/noNonNullAssertion: no nullability */
+/** biome-ignore-all lint/suspicious/noExplicitAny: we don't know the type of the event */
 import type { YjsDocumentManager } from "@jammwork/api";
 import { useCallback, useEffect, useRef } from "react";
 import type { Awareness } from "y-protocols/awareness";
@@ -9,7 +9,7 @@ import { useDocumentManager } from "./useDocumentManager";
 interface UseYjsSyncProps {
 	backendUrl: string;
 	userId: string;
-	roomId?: string;
+	roomId: string;
 }
 
 interface YjsSyncResult {
@@ -106,7 +106,7 @@ export const useYjsSync = ({
 			provider.destroy();
 			doc.destroy();
 		};
-	}, [backendUrl, roomId, userId]);
+	}, []);
 
 	// Cleanup on unmount
 	useEffect(() => {

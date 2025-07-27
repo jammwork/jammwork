@@ -14,7 +14,6 @@ interface UsePluginSystemProps {
 	mainDocument?: Y.Doc | null;
 	userId?: string;
 	roomId?: string;
-	enabled?: boolean;
 }
 
 export const usePluginSystem = ({
@@ -24,7 +23,6 @@ export const usePluginSystem = ({
 	mainDocument,
 	userId = "",
 	roomId = "",
-	enabled = true,
 }: UsePluginSystemProps = {}) => {
 	const [pluginsLoaded, setPluginsLoaded] = useState(false);
 
@@ -37,17 +35,7 @@ export const usePluginSystem = ({
 		api: PluginAPIImpl;
 		manager: PluginManager;
 		key: string;
-	} | null>(null);
-
-	// Only create plugin system when enabled
-	if (!enabled) {
-		return {
-			pluginSystem: null,
-			api: null,
-			layerComponents: [],
-			pluginsLoaded: false,
-		};
-	}
+	}>(null);
 
 	// Recreate plugin system if key changes or if it doesn't exist
 	if (
@@ -183,7 +171,7 @@ export const usePluginSystem = ({
 	}, [yjsDocumentManager, mainDocument, pluginSystem.api]);
 
 	// Stable API reference
-	const stableApi = useMemo(() => pluginSystem?.api || null, [pluginSystem]);
+	const stableApi = useMemo(() => pluginSystem.api, [pluginSystem]);
 
 	// Memoize layer components to prevent infinite re-renders
 	const layerComponents = useMemo(() => {
@@ -199,11 +187,6 @@ export const usePluginSystem = ({
 
 		const loadPlugins = async () => {
 			if (!isMounted) return;
-
-			// Don't load plugins if not enabled
-			if (!enabled) {
-				return;
-			}
 
 			// Only reload if plugins array actually changed
 			const currentPlugins = pluginSystem.manager.getLoadedPlugins();
@@ -242,7 +225,6 @@ export const usePluginSystem = ({
 		yjsDocumentManager,
 		userId,
 		roomId,
-		enabled,
 	]);
 
 	return {

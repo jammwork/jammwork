@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { useCanvasStore } from "@/store";
 
 interface UseViewportProps {
-	pluginApi?: PluginAPI;
+	pluginApi: PluginAPI;
 }
 
 export const useViewport = (props?: UseViewportProps) => {
