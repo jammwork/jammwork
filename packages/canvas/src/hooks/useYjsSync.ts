@@ -43,7 +43,11 @@ export const useYjsSync = ({
 		if (!backendUrl || !userId) return;
 
 		const doc = new Y.Doc();
-		const provider = new WebsocketProvider(backendUrl, roomId, doc);
+		const provider = new WebsocketProvider(
+			backendUrl.replace("http", "ws"),
+			roomId,
+			doc,
+		);
 
 		// Set user awareness data
 		provider.awareness.setLocalStateField("user", {

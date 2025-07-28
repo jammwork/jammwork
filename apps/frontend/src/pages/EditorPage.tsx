@@ -51,7 +51,7 @@ function EditorPage() {
 	return (
 		<div className="w-screen h-screen">
 			<InfiniteCanvas
-				backendUrl="ws://localhost:1234"
+				backendUrl={import.meta.env.VITE_BACKEND_URL}
 				userId={name}
 				roomId={roomId}
 				accentColor={color}
