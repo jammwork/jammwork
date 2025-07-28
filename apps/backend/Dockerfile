@@ -1,5 +1,5 @@
 # Use Node.js 20 LTS Alpine with pnpm
-FROM node:20-alpine
+FROM node:24-alpine
 
 # Install pnpm
 RUN corepack enable pnpm
