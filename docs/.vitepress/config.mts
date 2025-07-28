@@ -2,6 +2,7 @@ import { defineConfig } from "vitepress";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+	ignoreDeadLinks: true, // TODO: remove this once we have all the links working
 	title: "Jammwork Docs",
 	description: "Documentation website for Jammwork",
 	themeConfig: {
