@@ -1,5 +1,7 @@
 # Jammwork
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/jammwork/jammwork)
+
 An infinite canvas collaborative web application built with React, TypeScript, and a powerful plugin system.
 
 ## Features
