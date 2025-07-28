@@ -102,7 +102,7 @@ interface CanvasActions {
 		elementId: string,
 		handle: "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w",
 	) => void;
-	updateResize: (position: Position) => void;
+	updateResize: (position: Position, shiftKey?: boolean) => void;
 	endResize: () => void;
 }
 
@@ -496,7 +496,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 			};
 		}),
 
-	updateResize: (position) =>
+	updateResize: (position, shiftKey = false) =>
 		set((state) => {
 			const { resizeHandle } = state.selectionState;
 			if (!resizeHandle) return state;
@@ -508,59 +508,163 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 			const newBounds = { ...originalBounds };
 
 			// Calculate new bounds based on resize handle
-			switch (handle) {
-				case "nw":
-					newBounds.width = Math.max(
-						10,
-						originalBounds.width + (originalBounds.x - position.x),
-					);
-					newBounds.height = Math.max(
-						10,
-						originalBounds.height + (originalBounds.y - position.y),
-					);
-					newBounds.x = position.x;
-					newBounds.y = position.y;
-					break;
-				case "ne":
-					newBounds.width = Math.max(10, position.x - originalBounds.x);
-					newBounds.height = Math.max(
-						10,
-						originalBounds.height + (originalBounds.y - position.y),
-					);
-					newBounds.y = position.y;
-					break;
-				case "sw":
-					newBounds.width = Math.max(
-						10,
-						originalBounds.width + (originalBounds.x - position.x),
-					);
-					newBounds.height = Math.max(10, position.y - originalBounds.y);
-					newBounds.x = position.x;
-					break;
-				case "se":
-					newBounds.width = Math.max(10, position.x - originalBounds.x);
-					newBounds.height = Math.max(10, position.y - originalBounds.y);
-					break;
-				case "n":
-					newBounds.height = Math.max(
-						10,
-						originalBounds.height + (originalBounds.y - position.y),
-					);
-					newBounds.y = position.y;
-					break;
-				case "s":
-					newBounds.height = Math.max(10, position.y - originalBounds.y);
-					break;
-				case "e":
-					newBounds.width = Math.max(10, position.x - originalBounds.x);
-					break;
-				case "w":
-					newBounds.width = Math.max(
-						10,
-						originalBounds.width + (originalBounds.x - position.x),
-					);
-					newBounds.x = position.x;
-					break;
+			if (shiftKey) {
+				// Calculate scale factor based on the handle being used
+				let scaleX = 1;
+				let scaleY = 1;
+
+				switch (handle) {
+					case "nw":
+						scaleX =
+							(originalBounds.width + (originalBounds.x - position.x)) /
+							originalBounds.width;
+						scaleY =
+							(originalBounds.height + (originalBounds.y - position.y)) /
+							originalBounds.height;
+						break;
+					case "ne":
+						scaleX = (position.x - originalBounds.x) / originalBounds.width;
+						scaleY =
+							(originalBounds.height + (originalBounds.y - position.y)) /
+							originalBounds.height;
+						break;
+					case "sw":
+						scaleX =
+							(originalBounds.width + (originalBounds.x - position.x)) /
+							originalBounds.width;
+						scaleY = (position.y - originalBounds.y) / originalBounds.height;
+						break;
+					case "se":
+						scaleX = (position.x - originalBounds.x) / originalBounds.width;
+						scaleY = (position.y - originalBounds.y) / originalBounds.height;
+						break;
+					case "n":
+					case "s":
+						scaleY =
+							handle === "n"
+								? (originalBounds.height + (originalBounds.y - position.y)) /
+									originalBounds.height
+								: (position.y - originalBounds.y) / originalBounds.height;
+						scaleX = scaleY; // Keep proportional
+						break;
+					case "e":
+					case "w":
+						scaleX =
+							handle === "e"
+								? (position.x - originalBounds.x) / originalBounds.width
+								: (originalBounds.width + (originalBounds.x - position.x)) /
+									originalBounds.width;
+						scaleY = scaleX; // Keep proportional
+						break;
+				}
+
+				// Use the average of both scales to maintain aspect ratio
+				const scale = Math.max(0.1, Math.abs((scaleX + scaleY) / 2));
+
+				newBounds.width = Math.max(10, originalBounds.width * scale);
+				newBounds.height = Math.max(10, originalBounds.height * scale);
+
+				// Adjust position based on handle
+				switch (handle) {
+					case "nw":
+						newBounds.x =
+							originalBounds.x + originalBounds.width - newBounds.width;
+						newBounds.y =
+							originalBounds.y + originalBounds.height - newBounds.height;
+						break;
+					case "ne":
+						newBounds.x = originalBounds.x;
+						newBounds.y =
+							originalBounds.y + originalBounds.height - newBounds.height;
+						break;
+					case "sw":
+						newBounds.x =
+							originalBounds.x + originalBounds.width - newBounds.width;
+						newBounds.y = originalBounds.y;
+						break;
+					case "se":
+						newBounds.x = originalBounds.x;
+						newBounds.y = originalBounds.y;
+						break;
+					case "n":
+						newBounds.x =
+							originalBounds.x + (originalBounds.width - newBounds.width) / 2;
+						newBounds.y =
+							originalBounds.y + originalBounds.height - newBounds.height;
+						break;
+					case "s":
+						newBounds.x =
+							originalBounds.x + (originalBounds.width - newBounds.width) / 2;
+						newBounds.y = originalBounds.y;
+						break;
+					case "e":
+						newBounds.x = originalBounds.x;
+						newBounds.y =
+							originalBounds.y + (originalBounds.height - newBounds.height) / 2;
+						break;
+					case "w":
+						newBounds.x =
+							originalBounds.x + originalBounds.width - newBounds.width;
+						newBounds.y =
+							originalBounds.y + (originalBounds.height - newBounds.height) / 2;
+						break;
+				}
+			} else {
+				// Normal non-proportional resizing
+				switch (handle) {
+					case "nw":
+						newBounds.width = Math.max(
+							10,
+							originalBounds.width + (originalBounds.x - position.x),
+						);
+						newBounds.height = Math.max(
+							10,
+							originalBounds.height + (originalBounds.y - position.y),
+						);
+						newBounds.x = position.x;
+						newBounds.y = position.y;
+						break;
+					case "ne":
+						newBounds.width = Math.max(10, position.x - originalBounds.x);
+						newBounds.height = Math.max(
+							10,
+							originalBounds.height + (originalBounds.y - position.y),
+						);
+						newBounds.y = position.y;
+						break;
+					case "sw":
+						newBounds.width = Math.max(
+							10,
+							originalBounds.width + (originalBounds.x - position.x),
+						);
+						newBounds.height = Math.max(10, position.y - originalBounds.y);
+						newBounds.x = position.x;
+						break;
+					case "se":
+						newBounds.width = Math.max(10, position.x - originalBounds.x);
+						newBounds.height = Math.max(10, position.y - originalBounds.y);
+						break;
+					case "n":
+						newBounds.height = Math.max(
+							10,
+							originalBounds.height + (originalBounds.y - position.y),
+						);
+						newBounds.y = position.y;
+						break;
+					case "s":
+						newBounds.height = Math.max(10, position.y - originalBounds.y);
+						break;
+					case "e":
+						newBounds.width = Math.max(10, position.x - originalBounds.x);
+						break;
+					case "w":
+						newBounds.width = Math.max(
+							10,
+							originalBounds.width + (originalBounds.x - position.x),
+						);
+						newBounds.x = position.x;
+						break;
+				}
 			}
 
 			const newElements = new Map(state.elements);

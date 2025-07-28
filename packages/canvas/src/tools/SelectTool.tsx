@@ -102,7 +102,7 @@ export const createSelectTool = (api: PluginAPI): ToolDefinition => {
 			} else if (selectionState.draggedElement) {
 				updateElementDrag(canvasPosition);
 			} else if (selectionState.resizeHandle) {
-				updateResize(canvasPosition);
+				updateResize(canvasPosition, event.shiftKey);
 			} else {
 				// Update hover state when not dragging
 				const hoveredElement = findElementAtPoint(elements, canvasPosition);
