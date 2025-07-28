@@ -194,7 +194,12 @@ export class PluginAPIImpl implements PluginAPI {
 	// Element operations via canvas store
 	createElement(element: Omit<Element, "id">): string {
 		const state = useCanvasStore.getState();
-		const result = state.createElement(element) as {
+		// Add createdBy field to track the user who created this element
+		const elementWithCreator = {
+			...element,
+			createdBy: this.userId,
+		};
+		const result = state.createElement(elementWithCreator) as {
 			id: string;
 			element: Element;
 		};

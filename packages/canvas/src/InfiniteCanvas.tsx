@@ -1,5 +1,5 @@
 import type { Plugin } from "@jammwork/api";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { CanvasOverlay } from "./components/CanvasOverlay";
 import { CanvasRenderer } from "./components/CanvasRenderer";
 import { UserCursorsLayer } from "./components/UserCursorsLayer";
@@ -11,6 +11,7 @@ import { useToolLifecycle } from "./hooks/useToolLifecycle";
 import { useViewport } from "./hooks/useViewport";
 import { useYjsSync } from "./hooks/useYjsSync";
 import { useZoomPrevention } from "./hooks/useZoomPrevention";
+import { useCanvasStore } from "./store";
 
 interface InfiniteCanvasProps {
 	plugins?: Plugin[];
@@ -29,6 +30,15 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 }) => {
 	const svgRef = useRef<SVGSVGElement>(null);
 
+	// Set current user ID in the store for user-specific history tracking
+	const setCurrentUserId = useCanvasStore((state) => state.setCurrentUserId);
+	const setYjsDocument = useCanvasStore((state) => state.setYjsDocument);
+	useEffect(() => {
+		if (userId) {
+			setCurrentUserId(userId);
+		}
+	}, [userId, setCurrentUserId]);
+
 	// Document manager - create first to ensure it's available for plugin system
 	const documentManager = useDocumentManager({
 		backendUrl,
@@ -43,6 +53,13 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 		roomId,
 		accentColor,
 	});
+
+	// Set Yjs document in the store after yjsSync is initialized
+	useEffect(() => {
+		if (yjsSync.mainDocument) {
+			setYjsDocument(yjsSync.mainDocument);
+		}
+	}, [yjsSync.mainDocument, setYjsDocument]);
 
 	const { api, layerComponents, pluginsLoaded } = usePluginSystem({
 		plugins,

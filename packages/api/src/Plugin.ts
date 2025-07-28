@@ -29,6 +29,7 @@ export interface Element {
 	properties: Record<string, unknown>;
 	locked?: boolean;
 	visible?: boolean;
+	createdBy?: string;
 }
 
 export interface ElementRenderer {
