@@ -50,6 +50,7 @@ export interface SelectionState {
 export interface HistoryState {
 	elements: Map<string, Element>;
 	selectedElements: string[];
+	userId?: string; // Track which user this history state belongs to
 }
 
 export interface History {
@@ -69,6 +70,8 @@ interface CanvasState {
 		height: number;
 	};
 	history: History;
+	currentUserId?: string; // Current user ID for tracking user-specific history
+	yjsDocument?: any; // Y.Doc for syncing with collaborative backend
 }
 
 interface CanvasActions {
@@ -123,6 +126,8 @@ interface CanvasActions {
 	redo: () => void;
 	canUndo: () => boolean;
 	canRedo: () => boolean;
+	setCurrentUserId: (userId: string) => void;
+	setYjsDocument: (doc: any) => void; // Y.Doc for syncing undo/redo
 }
 
 type CanvasStore = CanvasState & CanvasActions;
@@ -157,6 +162,8 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 		present: createInitialHistoryState(),
 		future: [],
 	},
+	currentUserId: undefined,
+	yjsDocument: undefined,
 
 	setViewBox: (partialViewBox) =>
 		set((state) => ({
@@ -778,9 +785,20 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 	// History management
 	saveToHistory: () =>
 		set((state) => {
+			// Only save elements created by the current user
+			const userElements = new Map();
+			if (state.currentUserId) {
+				for (const [id, element] of state.elements) {
+					if (element.createdBy === state.currentUserId) {
+						userElements.set(id, element);
+					}
+				}
+			}
+
 			const currentState: HistoryState = {
-				elements: new Map(state.elements),
+				elements: userElements,
 				selectedElements: [...state.selectionState.selectedElements],
+				userId: state.currentUserId,
 			};
 
 			// Don't save if nothing has changed
@@ -822,8 +840,25 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 			const previous = state.history.past[state.history.past.length - 1];
 			const newPast = state.history.past.slice(0, -1);
 
-			return {
-				elements: new Map(previous.elements),
+			// Create new elements map with user's elements from history and keep other users' elements
+			const newElements = new Map(state.elements);
+
+			// Remove current user's elements
+			if (state.currentUserId) {
+				for (const [id, element] of state.elements) {
+					if (element.createdBy === state.currentUserId) {
+						newElements.delete(id);
+					}
+				}
+			}
+
+			// Add back user's elements from history state
+			for (const [id, element] of previous.elements) {
+				newElements.set(id, element);
+			}
+
+			const result = {
+				elements: newElements,
 				selectionState: {
 					...state.selectionState,
 					selectedElements: [...previous.selectedElements],
@@ -834,6 +869,31 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 					future: [state.history.present, ...state.history.future],
 				},
 			};
+
+			// Sync with Yjs after state update
+			if (state.yjsDocument) {
+				const elementsMap = state.yjsDocument.getMap("elements");
+				state.yjsDocument.transact(() => {
+					// Update only the current user's elements in Yjs
+					if (state.currentUserId) {
+						// Remove user's elements that were undone
+						for (const [id, element] of state.elements) {
+							if (
+								element.createdBy === state.currentUserId &&
+								!newElements.has(id)
+							) {
+								elementsMap.delete(id);
+							}
+						}
+						// Add back user's elements from history
+						for (const [id, element] of previous.elements) {
+							elementsMap.set(id, element);
+						}
+					}
+				});
+			}
+
+			return result;
 		}),
 
 	redo: () =>
@@ -843,8 +903,25 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 			const next = state.history.future[0];
 			const newFuture = state.history.future.slice(1);
 
-			return {
-				elements: new Map(next.elements),
+			// Create new elements map with user's elements from history and keep other users' elements
+			const newElements = new Map(state.elements);
+
+			// Remove current user's elements
+			if (state.currentUserId) {
+				for (const [id, element] of state.elements) {
+					if (element.createdBy === state.currentUserId) {
+						newElements.delete(id);
+					}
+				}
+			}
+
+			// Add back user's elements from history state
+			for (const [id, element] of next.elements) {
+				newElements.set(id, element);
+			}
+
+			const result = {
+				elements: newElements,
 				selectionState: {
 					...state.selectionState,
 					selectedElements: [...next.selectedElements],
@@ -855,9 +932,44 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 					future: newFuture,
 				},
 			};
+
+			// Sync with Yjs after state update
+			if (state.yjsDocument) {
+				const elementsMap = state.yjsDocument.getMap("elements");
+				state.yjsDocument.transact(() => {
+					// Update only the current user's elements in Yjs
+					if (state.currentUserId) {
+						// Remove user's elements that were in previous state
+						for (const [id, element] of state.elements) {
+							if (
+								element.createdBy === state.currentUserId &&
+								!newElements.has(id)
+							) {
+								elementsMap.delete(id);
+							}
+						}
+						// Add back user's elements from redo state
+						for (const [id, element] of next.elements) {
+							elementsMap.set(id, element);
+						}
+					}
+				});
+			}
+
+			return result;
 		}),
 
 	canUndo: () => get().history.past.length > 0,
 
 	canRedo: () => get().history.future.length > 0,
+
+	setCurrentUserId: (userId) =>
+		set((state) => ({
+			currentUserId: userId,
+		})),
+
+	setYjsDocument: (doc) =>
+		set((state) => ({
+			yjsDocument: doc,
+		})),
 }));

@@ -1,4 +1,4 @@
-import type { ToolDefinition, PluginAPI } from "@jammwork/api";
+import type { PluginAPI, ToolDefinition } from "@jammwork/api";
 import { MousePointer } from "lucide-react";
 import { useCanvasStore } from "@/store";
 import {
