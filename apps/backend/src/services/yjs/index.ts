@@ -1,4 +1,5 @@
 import { WebSocketServer } from "ws";
+import type { Server as HttpServer } from "node:http";
 import { DocumentManager } from "./document-manager.js";
 import { WebSocketHandler } from "./websocket-handler.js";
 import { serverConfig } from "../../config/server.js";
@@ -9,14 +10,23 @@ export class YjsService {
 	private documentManager: DocumentManager;
 	private wsHandler: WebSocketHandler;
 	private pingInterval: NodeJS.Timeout | null = null;
+	private httpServer?: HttpServer;
 
-	constructor() {
+	constructor(httpServer?: HttpServer) {
+		this.httpServer = httpServer;
 		this.documentManager = new DocumentManager();
 		this.wsHandler = new WebSocketHandler(this.documentManager);
-		this.wss = new WebSocketServer({
-			port: serverConfig.websocket.port,
-			host: serverConfig.websocket.host,
-		});
+
+		if (httpServer) {
+			// Use the existing HTTP server
+			this.wss = new WebSocketServer({ server: httpServer });
+		} else {
+			// Create standalone WebSocket server
+			this.wss = new WebSocketServer({
+				port: serverConfig.websocket.port,
+				host: serverConfig.websocket.host,
+			});
+		}
 
 		this.setupWebSocketServer();
 		this.startHealthCheck();
@@ -37,9 +47,13 @@ export class YjsService {
 			logger.error("WebSocket server error", { error });
 		});
 
-		logger.info(
-			`Yjs WebSocket server running on ws://${serverConfig.websocket.host}:${serverConfig.websocket.port}`,
-		);
+		const port = this.httpServer
+			? serverConfig.http.port
+			: serverConfig.websocket.port;
+		const host = this.httpServer
+			? serverConfig.http.host
+			: serverConfig.websocket.host;
+		logger.info(`Yjs WebSocket server running on ws://${host}:${port}`);
 	}
 
 	private startHealthCheck(): void {

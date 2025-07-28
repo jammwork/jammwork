@@ -1,3 +1,4 @@
+import type { Server as HttpServer } from "node:http";
 import { serve } from "@hono/node-server";
 import { createApp } from "./app.js";
 import { serverConfig } from "./config/server.js";
@@ -6,23 +7,14 @@ import { logger } from "./utils/logger.js";
 
 export class Server {
 	private yjsService: YjsService | null = null;
-	private httpServer: any = null;
+	private httpServer: HttpServer | null = null;
 
 	async start() {
 		try {
-			// Start Yjs WebSocket service
-			this.yjsService = new YjsService();
-
 			// Create and start HTTP server
 			const app = createApp();
 
-			// Add stats endpoint with access to YjsService
-			app.get("/api/stats", (c) => {
-				const stats = this.yjsService?.getStats() || {};
-				return c.json(stats);
-			});
-
-			this.httpServer = serve(
+			const serverInstance = serve(
 				{
 					fetch: app.fetch,
 					port: serverConfig.http.port,
@@ -34,6 +26,18 @@ export class Server {
 					);
 				},
 			);
+
+			// Extract the underlying HTTP server
+			this.httpServer = serverInstance as unknown as HttpServer;
+
+			// Start Yjs WebSocket service with HTTP server
+			this.yjsService = new YjsService(this.httpServer);
+
+			// Add stats endpoint with access to YjsService
+			app.get("/api/stats", (c) => {
+				const stats = this.yjsService?.getStats() || {};
+				return c.json(stats);
+			});
 
 			// Handle graceful shutdown
 			this.setupGracefulShutdown();
