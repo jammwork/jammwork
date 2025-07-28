@@ -73,22 +73,32 @@ const PathElementRenderer: React.FC<{ element: Element }> = ({ element }) => {
 	const color = element.properties.color as string;
 	const strokeWidth = element.properties.strokeWidth as number;
 
-	// Calculate the original bounds to determine offset
+	// Calculate the original bounds to determine offset and scaling
 	const originalPoints =
 		(element.properties.originalPoints as Position[]) || points;
 	const xs = originalPoints.map((p) => p.x);
 	const ys = originalPoints.map((p) => p.y);
 	const originalMinX = Math.min(...xs);
 	const originalMinY = Math.min(...ys);
+	const originalMaxX = Math.max(...xs);
+	const originalMaxY = Math.max(...ys);
+	const originalWidth = originalMaxX - originalMinX;
+	const originalHeight = originalMaxY - originalMinY;
 
-	// Apply transform based on element position
-	const offsetX = element.x - originalMinX;
-	const offsetY = element.y - originalMinY;
+	// Calculate scale factors
+	const scaleX = originalWidth > 0 ? element.width / originalWidth : 1;
+	const scaleY = originalHeight > 0 ? element.height / originalHeight : 1;
+
+	// Scale and translate points to match element's current size and position
+	const scaledPoints = originalPoints.map((point) => ({
+		x: (point.x - originalMinX) * scaleX,
+		y: (point.y - originalMinY) * scaleY,
+	}));
 
 	return (
-		<g transform={`translate(${offsetX}, ${offsetY})`}>
+		<g transform={`translate(${element.x}, ${element.y})`}>
 			<path
-				d={pathFromPoints(points)}
+				d={pathFromPoints(scaledPoints)}
 				stroke={color}
 				strokeWidth={strokeWidth}
 				fill="none"
