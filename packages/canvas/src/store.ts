@@ -47,6 +47,17 @@ export interface SelectionState {
 	} | null;
 }
 
+export interface HistoryState {
+	elements: Map<string, Element>;
+	selectedElements: string[];
+}
+
+export interface History {
+	past: HistoryState[];
+	present: HistoryState;
+	future: HistoryState[];
+}
+
 interface CanvasState {
 	viewBox: ViewBox;
 	dragState: DragState;
@@ -57,6 +68,7 @@ interface CanvasState {
 		width: number;
 		height: number;
 	};
+	history: History;
 }
 
 interface CanvasActions {
@@ -104,9 +116,21 @@ interface CanvasActions {
 	) => void;
 	updateResize: (position: Position, shiftKey?: boolean) => void;
 	endResize: () => void;
+
+	// History management
+	saveToHistory: () => void;
+	undo: () => void;
+	redo: () => void;
+	canUndo: () => boolean;
+	canRedo: () => boolean;
 }
 
 type CanvasStore = CanvasState & CanvasActions;
+
+const createInitialHistoryState = (): HistoryState => ({
+	elements: new Map(),
+	selectedElements: [],
+});
 
 export const useCanvasStore = create<CanvasStore>((set, get) => ({
 	viewBox: { x: 0, y: 0, zoom: CANVAS_CONSTANTS.ZOOM.DEFAULT },
@@ -128,6 +152,11 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 		resizeHandle: null,
 	},
 	elements: new Map(),
+	history: {
+		past: [],
+		present: createInitialHistoryState(),
+		future: [],
+	},
 
 	setViewBox: (partialViewBox) =>
 		set((state) => ({
@@ -248,11 +277,14 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 			return { elements: newElements };
 		});
 
+		// Save to history after creating element
+		get().saveToHistory();
+
 		// Return both id and element to avoid timing issues
 		return { id, element };
 	},
 
-	updateElement: (id, updates) =>
+	updateElement: (id, updates) => {
 		set((state) => {
 			const element = state.elements.get(id);
 			if (!element) return state;
@@ -260,9 +292,13 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 			const newElements = new Map(state.elements);
 			newElements.set(id, { ...element, ...updates });
 			return { elements: newElements };
-		}),
+		});
 
-	deleteElement: (id) =>
+		// Save to history after updating element
+		get().saveToHistory();
+	},
+
+	deleteElement: (id) => {
 		set((state) => {
 			const newElements = new Map(state.elements);
 			newElements.delete(id);
@@ -282,7 +318,11 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 							: state.selectionState.hoveredElement,
 				},
 			};
-		}),
+		});
+
+		// Save to history after deleting element
+		get().saveToHistory();
+	},
 
 	getElementById: (id) => get().elements.get(id),
 
@@ -734,4 +774,90 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 				resizeHandle: null,
 			},
 		})),
+
+	// History management
+	saveToHistory: () =>
+		set((state) => {
+			const currentState: HistoryState = {
+				elements: new Map(state.elements),
+				selectedElements: [...state.selectionState.selectedElements],
+			};
+
+			// Don't save if nothing has changed
+			if (
+				currentState.elements.size === state.history.present.elements.size &&
+				Array.from(currentState.elements.entries()).every(([id, element]) => {
+					const presentElement = state.history.present.elements.get(id);
+					return (
+						presentElement &&
+						JSON.stringify(element) === JSON.stringify(presentElement)
+					);
+				}) &&
+				JSON.stringify(currentState.selectedElements) ===
+					JSON.stringify(state.history.present.selectedElements)
+			) {
+				return state;
+			}
+
+			const newPast = [...state.history.past, state.history.present];
+
+			// Limit history to 20 states
+			if (newPast.length > 20) {
+				newPast.shift();
+			}
+
+			return {
+				history: {
+					past: newPast,
+					present: currentState,
+					future: [], // Clear future when new action is taken
+				},
+			};
+		}),
+
+	undo: () =>
+		set((state) => {
+			if (state.history.past.length === 0) return state;
+
+			const previous = state.history.past[state.history.past.length - 1];
+			const newPast = state.history.past.slice(0, -1);
+
+			return {
+				elements: new Map(previous.elements),
+				selectionState: {
+					...state.selectionState,
+					selectedElements: [...previous.selectedElements],
+				},
+				history: {
+					past: newPast,
+					present: previous,
+					future: [state.history.present, ...state.history.future],
+				},
+			};
+		}),
+
+	redo: () =>
+		set((state) => {
+			if (state.history.future.length === 0) return state;
+
+			const next = state.history.future[0];
+			const newFuture = state.history.future.slice(1);
+
+			return {
+				elements: new Map(next.elements),
+				selectionState: {
+					...state.selectionState,
+					selectedElements: [...next.selectedElements],
+				},
+				history: {
+					past: [...state.history.past, state.history.present],
+					present: next,
+					future: newFuture,
+				},
+			};
+		}),
+
+	canUndo: () => get().history.past.length > 0,
+
+	canRedo: () => get().history.future.length > 0,
 }));

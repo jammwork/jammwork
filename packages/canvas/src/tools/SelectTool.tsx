@@ -166,6 +166,8 @@ export const createSelectTool = (api: PluginAPI): ToolDefinition => {
 					}
 				}
 				endElementDrag();
+				// Save to history after drag operation
+				state.saveToHistory();
 			}
 
 			if (selectionState.resizeHandle) {
@@ -184,6 +186,8 @@ export const createSelectTool = (api: PluginAPI): ToolDefinition => {
 					});
 				}
 				endResize();
+				// Save to history after resize operation
+				state.saveToHistory();
 			}
 		},
 

@@ -42,7 +42,36 @@ export const useKeyboardShortcuts = ({
 			// Don't handle other keys if space is pressed (to allow space+drag panning)
 			if (toolState.isSpacePressed) return;
 
-			// Handle canvas tool switching shortcuts FIRST (highest priority)
+			// Handle global shortcuts FIRST (highest priority)
+			const { undo, redo, canUndo, canRedo } = useCanvasStore.getState();
+
+			// Undo/Redo shortcuts
+			if (e.key.toLowerCase() === "z" && (e.ctrlKey || e.metaKey)) {
+				e.preventDefault();
+				if (e.shiftKey) {
+					// Redo (Ctrl+Shift+Z or Cmd+Shift+Z)
+					if (canRedo()) {
+						redo();
+					}
+				} else {
+					// Undo (Ctrl+Z or Cmd+Z)
+					if (canUndo()) {
+						undo();
+					}
+				}
+				return;
+			}
+
+			// Alternative redo shortcut
+			if (e.key.toLowerCase() === "y" && (e.ctrlKey || e.metaKey)) {
+				e.preventDefault();
+				if (canRedo()) {
+					redo();
+				}
+				return;
+			}
+
+			// Handle canvas tool switching shortcuts
 			switch (e.key.toLowerCase()) {
 				case "v":
 					setActiveTool("select");
