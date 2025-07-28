@@ -234,14 +234,20 @@ export class PluginAPIImpl implements PluginAPI {
 			throw new Error(`Element with id "${id}" not found`);
 		}
 
-		state.updateElement(id, updates);
+		// Deep merge properties if they exist in updates
+		const mergedUpdates = { ...updates };
+		if (updates.properties && element.properties) {
+			mergedUpdates.properties = { ...element.properties, ...updates.properties };
+		}
+		
+		state.updateElement(id, mergedUpdates);
 
 		const updatedElement = state.elements.get(id);
 		if (updatedElement) {
 			this.emit("element:updated", {
 				id,
 				element: updatedElement,
-				changes: updates,
+				changes: mergedUpdates,
 			});
 		}
 	}

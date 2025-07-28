@@ -53,21 +53,6 @@ export const useYjsSync = ({
 			cursor: { x: 0, y: 0 },
 		});
 
-		// Add connection event logging for debugging
-		provider.on("status", (event: any) => {
-			if (event.status !== "connected") {
-				console.log("Yjs provider status:", event);
-			}
-		});
-
-		provider.on("connection-close", (event: any) => {
-			console.log("Yjs provider connection closed:", event);
-		});
-
-		provider.on("connection-error", (event: any) => {
-			console.log("Yjs provider connection error:", event);
-		});
-
 		// Handle page unload/reload to clean up awareness
 		const handleBeforeUnload = () => {
 			// Clear the user's awareness state before leaving

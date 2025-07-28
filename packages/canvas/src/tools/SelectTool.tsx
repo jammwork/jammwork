@@ -1,4 +1,4 @@
-import type { ToolDefinition, PluginAPI } from "@jammwork/api";
+import type { PluginAPI, ToolDefinition } from "@jammwork/api";
 import { MousePointer } from "lucide-react";
 import { useCanvasStore } from "@/store";
 import {
@@ -184,6 +184,29 @@ export const createSelectTool = (api: PluginAPI): ToolDefinition => {
 					});
 				}
 				endResize();
+			}
+		},
+
+		onDoubleClick: (_event, position) => {
+			const state = useCanvasStore.getState();
+			const { elements, viewBox } = state;
+
+			// Convert screen position to canvas position
+			const canvasPosition = {
+				x: viewBox.x + position.x / viewBox.zoom,
+				y: viewBox.y + position.y / viewBox.zoom,
+			};
+
+			// Find the element at the double-click position
+			const clickedElement = findElementAtPoint(elements, canvasPosition);
+
+			if (clickedElement) {
+				// Emit a generic element double-click event that plugins can listen to
+				api.emit("element:doubleclick", {
+					element: clickedElement,
+					position: canvasPosition,
+					screenPosition: position,
+				});
 			}
 		},
 

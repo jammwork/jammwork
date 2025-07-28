@@ -203,6 +203,8 @@ export abstract class PluginAPIBase implements PluginAPI {
 	abstract selectElement(id: string): void;
 	abstract deselectElement(id: string): void;
 	abstract clearSelection(): void;
+	abstract setToolHighlight(toolId: string, isHighlighted: boolean): void;
+	abstract isToolHighlighted(toolId: string): boolean;
 
 	// Yjs synchronization
 	abstract getYjsDocumentManager(): YjsDocumentManager;

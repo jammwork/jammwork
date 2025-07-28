@@ -257,8 +257,10 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 			const element = state.elements.get(id);
 			if (!element) return state;
 
+			const updatedElement = { ...element, ...updates };
+
 			const newElements = new Map(state.elements);
-			newElements.set(id, { ...element, ...updates });
+			newElements.set(id, updatedElement);
 			return { elements: newElements };
 		}),
 

@@ -5,6 +5,7 @@ import { RectanglePreview } from "./components/RectanglePreview";
 import { TrianglePreview } from "./components/TrianglePreview";
 import { createCircleLayer } from "./layers/CircleLayer";
 import { createRectangleLayer } from "./layers/RectangleLayer";
+import { createTextEditingLayer } from "./layers/TextEditingLayer";
 import { createTriangleLayer } from "./layers/TriangleLayer";
 import { CircleRenderer } from "./renderers/CircleRenderer";
 import { RectangleRenderer } from "./renderers/RectangleRenderer";
@@ -103,6 +104,10 @@ export const ShapesPlugin: Plugin = {
 		api.registerLayerComponent(createRectangleLayer(api));
 		api.registerLayerComponent(createCircleLayer(api));
 		api.registerLayerComponent(createTriangleLayer(api));
+
+		// Register text editing layer
+		api.registerLayerComponent(createTextEditingLayer(api));
+
 	},
 
 	deactivate: async () => {

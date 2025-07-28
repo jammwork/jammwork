@@ -179,11 +179,42 @@ export const useCanvasEvents = ({
 		[zoomAt, svgRef],
 	);
 
+	const handleDoubleClick = useCallback(
+		(e: React.MouseEvent) => {
+			const { toolState } = useCanvasStore.getState();
+			const rect = svgRef.current?.getBoundingClientRect();
+			if (!rect) return;
+
+			const screenPosition = {
+				x: e.clientX - rect.left,
+				y: e.clientY - rect.top,
+			};
+
+			// Check if there's an active plugin tool with double-click handler
+			if (pluginApi) {
+				const registeredTools = pluginApi.getRegisteredTools();
+				const activeTool = Array.from(registeredTools.values()).find(
+					(tool) => tool.id === toolState.activeTool,
+				);
+
+				if (activeTool?.onDoubleClick) {
+					activeTool.onDoubleClick(e.nativeEvent, screenPosition);
+				} else if (toolState.activeTool === "select") {
+					selectTool?.onDoubleClick?.(e.nativeEvent, screenPosition);
+				}
+			} else if (toolState.activeTool === "select") {
+				selectTool?.onDoubleClick?.(e.nativeEvent, screenPosition);
+			}
+		},
+		[pluginApi, svgRef, selectTool],
+	);
+
 	return {
 		handleMouseDown,
 		handleMouseMove,
 		handleMouseUp,
 		handleMouseLeave,
 		handleWheel,
+		handleDoubleClick,
 	};
 };

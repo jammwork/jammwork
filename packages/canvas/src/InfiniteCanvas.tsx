@@ -72,6 +72,7 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 		handleMouseUp,
 		handleMouseLeave,
 		handleWheel,
+		handleDoubleClick,
 	} = useCanvasEvents({
 		svgRef,
 		pluginApi: api,
@@ -127,6 +128,7 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 				onMouseUp={handleMouseUp}
 				onMouseLeave={handleMouseLeave}
 				onWheel={handleWheel}
+				onDoubleClick={handleDoubleClick}
 			/>
 			<CanvasOverlay
 				pluginApi={api}

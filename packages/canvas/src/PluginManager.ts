@@ -17,7 +17,8 @@ export class PluginManager {
 	private config: PluginManagerConfig;
 
 	constructor(api: PluginAPI, config: PluginManagerConfig = {}) {
-		this.eventBus = new EventBus();
+		// Use the main API's event system instead of creating a new one
+		this.eventBus = new EventBus(); // We'll override this in the plugin API
 		this.api = api;
 		this.config = {
 			autoLoad: true,
@@ -63,14 +64,14 @@ export class PluginManager {
 			registerElementType: this.api.registerElementType.bind(this.api),
 			registerTool: this.api.registerTool.bind(this.api),
 
-			// Event bus system (override with disposable tracking)
+			// Event bus system (delegate to main API but track disposables)
 			on: (event, handler) => {
-				const disposable = this.eventBus.on(event, handler);
+				const disposable = this.api.on(event, handler);
 				disposables.push(disposable);
 				return disposable;
 			},
 			emit: (event, data) => {
-				this.eventBus.emit(event, data);
+				this.api.emit(event, data);
 			},
 
 			// Core canvas state

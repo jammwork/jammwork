@@ -58,6 +58,7 @@ export interface ToolDefinition {
 	onMouseDown?(event: MouseEvent, position: { x: number; y: number }): void;
 	onMouseMove?(event: MouseEvent, position: { x: number; y: number }): void;
 	onMouseUp?(event: MouseEvent, position: { x: number; y: number }): void;
+	onDoubleClick?(event: MouseEvent, position: { x: number; y: number }): void;
 	onKeyDown?(event: KeyboardEvent): void;
 }
 
@@ -167,9 +168,11 @@ export type PluginEvent =
 	| "element:deleted"
 	| "element:selected"
 	| "element:deselected"
+	| "element:doubleclick"
 	| "selection:changed"
 	| "canvas:pan"
 	| "canvas:zoom"
+	| "canvas:doubleclick"
 	| "tool:activated"
 	| "tool:deactivated"
 	| "plugin:loaded"
@@ -187,9 +190,18 @@ export interface PluginEventData extends Record<string | symbol, unknown> {
 	"element:deleted": { id: string; element: Element };
 	"element:selected": { id: string; element: Element };
 	"element:deselected": { id: string; element: Element };
+	"element:doubleclick": {
+		element: Element;
+		position: { x: number; y: number };
+		screenPosition: { x: number; y: number };
+	};
 	"selection:changed": { selected: string[]; previous: string[] };
 	"canvas:pan": { x: number; y: number; deltaX: number; deltaY: number };
 	"canvas:zoom": { zoom: number; centerX: number; centerY: number };
+	"canvas:doubleclick": {
+		screenPosition: { x: number; y: number };
+		canvasPosition: { x: number; y: number };
+	};
 	"tool:activated": { toolId: string; tool: ToolDefinition };
 	"tool:deactivated": { toolId: string; tool: ToolDefinition };
 	"plugin:loaded": { plugin: Plugin };

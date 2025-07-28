@@ -1,3 +1,4 @@
+import type { Element } from "@jammwork/api";
 import { create } from "zustand";
 
 export interface Position {
@@ -14,6 +15,11 @@ export interface ShapeCreationState {
 	currentPosition: Position | null;
 }
 
+export interface TextEditingState {
+	isEditing: boolean;
+	editingElement: Element | null;
+}
+
 interface ShapeCreationActions {
 	startCreating: (shapeType: ShapeType, position: Position) => void;
 	updateCreating: (position: Position) => void;
@@ -21,13 +27,23 @@ interface ShapeCreationActions {
 	cancelCreating: () => void;
 }
 
-type ShapeCreationStore = ShapeCreationState & ShapeCreationActions;
+interface TextEditingActions {
+	startTextEditing: (element: Element) => void;
+	endTextEditing: () => void;
+}
+
+type ShapeCreationStore = ShapeCreationState &
+	TextEditingState &
+	ShapeCreationActions &
+	TextEditingActions;
 
 export const useShapeCreationStore = create<ShapeCreationStore>((set) => ({
 	isCreating: false,
 	shapeType: null,
 	startPosition: null,
 	currentPosition: null,
+	isEditing: false,
+	editingElement: null,
 
 	startCreating: (shapeType, position) => {
 		set({
@@ -63,6 +79,20 @@ export const useShapeCreationStore = create<ShapeCreationStore>((set) => ({
 			shapeType: null,
 			startPosition: null,
 			currentPosition: null,
+		});
+	},
+
+	startTextEditing: (element) => {
+		set({
+			isEditing: true,
+			editingElement: element,
+		});
+	},
+
+	endTextEditing: () => {
+		set({
+			isEditing: false,
+			editingElement: null,
 		});
 	},
 }));

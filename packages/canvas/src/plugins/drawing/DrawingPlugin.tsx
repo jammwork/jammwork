@@ -240,7 +240,6 @@ export const DrawingPlugin: Plugin = {
 		// Clean up drawing state
 		const { clearDrawing } = useDrawingStore.getState();
 		clearDrawing();
-		console.log("Drawing plugin deactivated");
 	},
 };
 

@@ -13,6 +13,7 @@ interface CanvasRendererProps {
 	onMouseUp: (e: React.MouseEvent) => void;
 	onMouseLeave: () => void;
 	onWheel: (e: React.WheelEvent) => void;
+	onDoubleClick?: (e: React.MouseEvent) => void;
 }
 
 export const CanvasRenderer = forwardRef<
@@ -30,6 +31,7 @@ export const CanvasRenderer = forwardRef<
 			onMouseUp,
 			onMouseLeave,
 			onWheel,
+			onDoubleClick,
 		},
 		ref,
 	) => {
@@ -50,6 +52,7 @@ export const CanvasRenderer = forwardRef<
 				onMouseUp={onMouseUp}
 				onMouseLeave={onMouseLeave}
 				onWheel={onWheel}
+				onDoubleClick={onDoubleClick}
 			>
 				<Grid />
 				{/* Render plugin layers */}
