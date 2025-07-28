@@ -1,5 +1,6 @@
 import type { Element } from "@jammwork/api";
 import { CANVAS_CONSTANTS } from "@jammwork/api";
+import type { Doc } from "yjs";
 import { create } from "zustand";
 
 export interface ViewBox {
@@ -21,7 +22,7 @@ export interface DragState {
 export type CanvasTool = "select" | "pan";
 
 export interface ToolState {
-	activeTool: string; // Changed to string to support dynamic plugin tools
+	activeTool: string;
 	isSpacePressed: boolean;
 	isSpacePanning: boolean;
 }
@@ -50,7 +51,7 @@ export interface SelectionState {
 export interface HistoryState {
 	elements: Map<string, Element>;
 	selectedElements: string[];
-	userId?: string; // Track which user this history state belongs to
+	userId?: string;
 }
 
 export interface History {
@@ -70,8 +71,8 @@ interface CanvasState {
 		height: number;
 	};
 	history: History;
-	currentUserId?: string; // Current user ID for tracking user-specific history
-	yjsDocument?: any; // Y.Doc for syncing with collaborative backend
+	currentUserId?: string;
+	yjsDocument?: Doc;
 }
 
 interface CanvasActions {
@@ -127,7 +128,7 @@ interface CanvasActions {
 	canUndo: () => boolean;
 	canRedo: () => boolean;
 	setCurrentUserId: (userId: string) => void;
-	setYjsDocument: (doc: any) => void; // Y.Doc for syncing undo/redo
+	setYjsDocument: (doc: Doc) => void;
 }
 
 type CanvasStore = CanvasState & CanvasActions;
@@ -964,12 +965,12 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 	canRedo: () => get().history.future.length > 0,
 
 	setCurrentUserId: (userId) =>
-		set((state) => ({
+		set(() => ({
 			currentUserId: userId,
 		})),
 
 	setYjsDocument: (doc) =>
-		set((state) => ({
+		set(() => ({
 			yjsDocument: doc,
 		})),
 }));
