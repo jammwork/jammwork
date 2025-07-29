@@ -73,6 +73,13 @@ export interface ContextMenuItem {
 	onClick?(): void;
 }
 
+export interface MenuItem {
+	id: string;
+	component: React.ComponentType;
+	position: "top-right";
+	order?: number;
+}
+
 export interface YjsDocumentManager {
 	getDocument(documentId: string): Y.Doc;
 	createDocument(documentId: string): Y.Doc;
@@ -113,6 +120,7 @@ export interface PluginAPI {
 	registerToolbarComponent(component: React.ComponentType): Disposable;
 	registerContextMenuItems(items: ContextMenuItem[]): Disposable;
 	registerLayerComponent(component: React.ComponentType): Disposable;
+	registerMenuItem(item: MenuItem): Disposable;
 
 	// Registry access methods
 	getRegisteredTools(): Map<string, ToolDefinition>;
@@ -120,6 +128,7 @@ export interface PluginAPI {
 	getSecondaryTools(mainToolId: string): ToolDefinition[];
 	getLayerComponents(): React.ComponentType[];
 	getElements(): Map<string, Element>;
+	getMenuItems(position?: "top-right"): MenuItem[];
 
 	// Tool highlight control
 	setToolHighlight(toolId: string, highlighted: boolean): void;

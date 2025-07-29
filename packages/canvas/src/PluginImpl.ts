@@ -5,6 +5,7 @@ import type {
 	Element,
 	ElementRenderer,
 	EventBus,
+	MenuItem,
 	PluginAPI,
 	PluginEvent,
 	PluginEventData,
@@ -23,6 +24,7 @@ export class PluginAPIImpl implements PluginAPI {
 	private toolbarComponents: React.ComponentType[] = [];
 	private contextMenuItems: ContextMenuItem[] = [];
 	private layerComponents: React.ComponentType[] = [];
+	private menuItems: MenuItem[] = [];
 	private accentColor: string;
 	private yjsDocumentManager?: YjsDocumentManager;
 	private awareness?: Awareness;
@@ -186,6 +188,31 @@ export class PluginAPIImpl implements PluginAPI {
 				const index = this.layerComponents.indexOf(component);
 				if (index > -1) {
 					this.layerComponents.splice(index, 1);
+				}
+			},
+		};
+	}
+
+	registerMenuItem(item: MenuItem): Disposable {
+		// Insert menu item in order (lower order values appear first)
+		const order = item.order ?? 100;
+		const insertIndex = this.menuItems.findIndex(
+			(existingItem) => (existingItem.order ?? 100) > order,
+		);
+
+		if (insertIndex === -1) {
+			this.menuItems.push(item);
+		} else {
+			this.menuItems.splice(insertIndex, 0, item);
+		}
+
+		return {
+			dispose: () => {
+				const index = this.menuItems.findIndex(
+					(existingItem) => existingItem.id === item.id,
+				);
+				if (index > -1) {
+					this.menuItems.splice(index, 1);
 				}
 			},
 		};
@@ -369,6 +396,13 @@ export class PluginAPIImpl implements PluginAPI {
 
 	getLayerComponents(): React.ComponentType[] {
 		return [...this.layerComponents];
+	}
+
+	getMenuItems(position?: "top-right"): MenuItem[] {
+		if (position) {
+			return this.menuItems.filter((item) => item.position === position);
+		}
+		return [...this.menuItems];
 	}
 
 	getElements(): Map<string, Element> {

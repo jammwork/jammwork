@@ -6,6 +6,7 @@ export type {
 	Disposable,
 	Element,
 	ElementRenderer,
+	MenuItem,
 	Plugin,
 	PluginAPI,
 	PluginEvent,

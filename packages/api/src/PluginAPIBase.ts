@@ -7,6 +7,7 @@ import type {
 	Disposable,
 	Element,
 	ElementRenderer,
+	MenuItem,
 	PluginAPI,
 	PluginEvent,
 	PluginEventData,
@@ -23,6 +24,7 @@ export abstract class PluginAPIBase implements PluginAPI {
 	protected toolbarComponents: React.ComponentType[] = [];
 	protected contextMenuItems: ContextMenuItem[] = [];
 	protected layerComponents: React.ComponentType[] = [];
+	protected menuItems: MenuItem[] = [];
 	protected accentColor: string;
 	protected userId: string;
 	protected roomId: string;
@@ -141,6 +143,31 @@ export abstract class PluginAPIBase implements PluginAPI {
 		};
 	}
 
+	registerMenuItem(item: MenuItem): Disposable {
+		// Insert menu item in order (lower order values appear first)
+		const order = item.order ?? 100;
+		const insertIndex = this.menuItems.findIndex(
+			(existingItem) => (existingItem.order ?? 100) > order,
+		);
+
+		if (insertIndex === -1) {
+			this.menuItems.push(item);
+		} else {
+			this.menuItems.splice(insertIndex, 0, item);
+		}
+
+		return {
+			dispose: () => {
+				const index = this.menuItems.findIndex(
+					(existingItem) => existingItem.id === item.id,
+				);
+				if (index > -1) {
+					this.menuItems.splice(index, 1);
+				}
+			},
+		};
+	}
+
 	// Registry access methods
 	getRegisteredElementTypes(): Map<string, ElementRenderer> {
 		return new Map(this.elementRenderers);
@@ -170,6 +197,13 @@ export abstract class PluginAPIBase implements PluginAPI {
 		return [...this.layerComponents];
 	}
 
+	getMenuItems(position?: "top-right"): MenuItem[] {
+		if (position) {
+			return this.menuItems.filter((item) => item.position === position);
+		}
+		return [...this.menuItems];
+	}
+
 	// Theme and styling
 	getAccentColor(): string {
 		return this.accentColor;
@@ -186,6 +220,8 @@ export abstract class PluginAPIBase implements PluginAPI {
 	}
 
 	// Abstract methods that must be implemented by concrete classes
+	abstract setToolHighlight(toolId: string, highlighted: boolean): void;
+	abstract isToolHighlighted(toolId: string): boolean;
 	abstract getCanvasState(): Readonly<CanvasState>;
 	abstract getSelectedElements(): readonly string[];
 	abstract screenToCanvas(screenPosition: { x: number; y: number }): {

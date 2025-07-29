@@ -15,10 +15,18 @@ interface CanvasOverlayProps {
 
 export const CanvasOverlay: React.FC<CanvasOverlayProps> = React.memo(
 	({ pluginApi, pluginsLoaded, awareness, currentUserId }) => {
+		const topRightMenuItems = pluginsLoaded
+			? pluginApi.getMenuItems("top-right")
+			: [];
+
 		return (
 			<>
 				<PositionDisplay />
 				<div className="absolute top-2 right-2 z-10 flex items-center gap-2">
+					{topRightMenuItems.map((item) => {
+						const Component = item.component;
+						return <Component key={item.id} />;
+					})}
 					{awareness && currentUserId && (
 						<MemberList awareness={awareness} currentUserId={currentUserId} />
 					)}

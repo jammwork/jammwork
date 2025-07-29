@@ -89,11 +89,13 @@ export class PluginManager {
 				this.api,
 			),
 			registerLayerComponent: this.api.registerLayerComponent.bind(this.api),
+			registerMenuItem: this.api.registerMenuItem.bind(this.api),
 
 			// Registry access methods
 			getRegisteredTools: this.api.getRegisteredTools.bind(this.api),
 			getLayerComponents: this.api.getLayerComponents.bind(this.api),
 			getElements: this.api.getElements.bind(this.api),
+			getMenuItems: this.api.getMenuItems.bind(this.api),
 
 			// Theme and styling
 			getAccentColor: this.api.getAccentColor.bind(this.api),
