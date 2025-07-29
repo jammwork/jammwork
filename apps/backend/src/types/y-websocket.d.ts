@@ -1,17 +1,17 @@
 import type { WebSocket } from "ws";
-import type * as Y from "yjs";
 import type { Awareness } from "y-protocols/awareness";
+import type * as Y from "yjs";
 
 export interface YjsConnection {
 	ws: WebSocket;
 	doc: Y.Doc;
 	awareness: Awareness;
-	roomName: string;
+	spaceName: string;
 	userId?: string;
 	isAlive: boolean;
 }
 
-export interface YjsRoom {
+export interface YjsSpace {
 	name: string;
 	doc: Y.Doc;
 	awareness: Awareness;

@@ -139,8 +139,8 @@ export interface PluginAPI {
 	// User identification
 	getUserId(): string;
 
-	// Room identification
-	getRoomId(): string;
+	// Space identification
+	getSpaceId(): string;
 
 	// Element operations via events
 	createElement(element: Omit<Element, "id">): string;

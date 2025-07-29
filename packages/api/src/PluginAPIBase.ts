@@ -26,18 +26,18 @@ export abstract class PluginAPIBase implements PluginAPI {
 	protected menuItems: MenuItem[] = [];
 	protected accentColor: string;
 	protected userId: string;
-	protected roomId: string;
+	protected spaceId: string;
 
 	constructor(
 		eventBus: EventBus,
 		accentColor = "#3b82f6",
 		userId = "",
-		roomId = "",
+		spaceId = "",
 	) {
 		this.eventBus = eventBus;
 		this.accentColor = accentColor;
 		this.userId = userId;
-		this.roomId = roomId;
+		this.spaceId = spaceId;
 	}
 
 	// Element management
@@ -196,9 +196,9 @@ export abstract class PluginAPIBase implements PluginAPI {
 		return this.userId;
 	}
 
-	// Room identification
-	getRoomId(): string {
-		return this.roomId;
+	// Space identification
+	getSpaceId(): string {
+		return this.spaceId;
 	}
 
 	// Abstract methods that must be implemented by concrete classes

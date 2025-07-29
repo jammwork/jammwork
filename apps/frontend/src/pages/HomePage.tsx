@@ -1,18 +1,13 @@
 import {
 	Button,
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-	Input,
 } from "@jammwork/ui";
-import { Heart } from "lucide-react";
+import { PlusIcon, Settings2 } from "lucide-react";
 import { nanoid } from "nanoid";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRandomPastelColor, pastelColors } from "@/lib/colors";
+import SettingsDialog from '@/components/ProfileSettings';
+import SpaceList from '@/components/SpaceList';
+import { getRandomPastelColor } from "@/lib/colors";
 
 function HomePage() {
 	const navigate = useNavigate();
@@ -28,7 +23,7 @@ function HomePage() {
 	}, [selectedColor]);
 
 	function handleSubmit() {
-		const roomId = nanoid();
+		const spaceId = nanoid();
 		const name = nameRef.current?.value;
 
 		if (!name || name.trim() === "") {
@@ -38,59 +33,30 @@ function HomePage() {
 
 		localStorage.setItem("name", name);
 
-		navigate(`/room/${roomId}`);
+		navigate(`/space/${spaceId}`);
 	}
 
 	return (
-		<div className="h-screen w-screen flex flex-col gap-6 items-center justify-center">
-			<Card className="w-96">
-				<CardHeader>
-					<img
-						src="/jammwork.png"
-						alt="Jammwork"
-						className="w-14 h-14"
-						draggable={false}
-					/>
-					<div className="h-4" />
-					<CardTitle>Create a new room</CardTitle>
-					<CardDescription>
-						You can invite others to join after creating a room.
-					</CardDescription>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					<Input
-						defaultValue={defaultName ?? ""}
-						type="text"
-						placeholder="Your name"
-						ref={nameRef}
-					/>
-					{
-						<div className="flex items-center gap-2">
-							{pastelColors.map((color) => (
-								<button
-									key={color}
-									type="button"
-									className={`w-6 h-6 rounded-md transition-opacity cursor-pointer ${
-										selectedColor === color ? "opacity-100" : "opacity-50"
-									}`}
-									style={{ backgroundColor: color }}
-									onClick={() => setSelectedColor(color)}
-								/>
-							))}
-						</div>
-					}
-				</CardContent>
-				<CardFooter>
-					<Button onClick={handleSubmit}>Submit</Button>
-				</CardFooter>
-			</Card>
+		<div className="h-screen w-screen">
+			<div className="max-w-xl mx-auto pt-20 flex items-center gap-4">
+				<img src="/jammwork.png" alt="Jammwork" className="w-12 h-12" draggable={false} />
+				<div>
+					<h1 className="text-xl font-bold">Jammwork</h1>
+					<p className="text-sm text-muted-foreground">
+						Collaborate with your team in real-time.
+					</p>
+				</div>
+				<div className='ml-auto space-x-2'>
+					<Button variant='outline'><PlusIcon /></Button>
+					<SettingsDialog>
+						<Button variant='outline'><Settings2 /></Button>
+					</SettingsDialog>
+				</div>
+			</div>
 
-			<p className="text-sm text-muted-foreground">
-				Made with <Heart className="inline-block w-4 h-4" /> by{" "}
-				<a href="https://github.com/jammwork" className="underline">
-					Jammwork
-				</a>
-			</p>
+			<div className="max-w-xl mx-auto pt-10 space-y-6">
+				<SpaceList />
+			</div>
 		</div>
 	);
 }

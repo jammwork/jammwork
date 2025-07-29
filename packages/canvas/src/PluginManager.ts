@@ -99,7 +99,7 @@ export class PluginManager {
 
 			// User identification
 			getUserId: this.api.getUserId.bind(this.api),
-			getRoomId: this.api.getRoomId.bind(this.api),
+			getSpaceId: this.api.getSpaceId.bind(this.api),
 
 			// Element operations
 			createElement: this.api.createElement.bind(this.api),

@@ -1,32 +1,32 @@
-import * as Y from "yjs";
-import { Awareness, encodeAwarenessUpdate } from "y-protocols/awareness";
 import * as encoding from "lib0/encoding";
+import { Awareness, encodeAwarenessUpdate } from "y-protocols/awareness";
 import * as syncProtocol from "y-protocols/sync";
-import type { YjsRoom, YjsConnection } from "../../types/y-websocket.js";
-import { logger } from "../../utils/logger.js";
+import * as Y from "yjs";
 import { serverConfig } from "../../config/server.js";
+import type { YjsConnection, YjsSpace } from "../../types/y-websocket.js";
+import { logger } from "../../utils/logger.js";
 
 const messageSync = 0;
 const messageAwareness = 1;
 
 export class DocumentManager {
-	private rooms = new Map<string, YjsRoom>();
+	private spaces = new Map<string, YjsSpace>();
 	private connections = new Set<YjsConnection>();
 
-	createRoom(roomName: string): YjsRoom {
-		if (this.rooms.has(roomName)) {
-			return this.rooms.get(roomName)!;
+	createSpace(spaceName: string): YjsSpace {
+		if (this.spaces.has(spaceName)) {
+			return this.spaces.get(spaceName)!;
 		}
 
-		if (this.rooms.size >= serverConfig.yjs.maxRooms) {
-			this.cleanupOldRooms();
+		if (this.spaces.size >= serverConfig.yjs.maxSpaces) {
+			this.cleanupOldSpaces();
 		}
 
 		const doc = new Y.Doc();
 		const awareness = new Awareness(doc);
 
-		const room: YjsRoom = {
-			name: roomName,
+		const space: YjsSpace = {
+			name: spaceName,
 			doc,
 			awareness,
 			connections: new Set(),
@@ -35,61 +35,61 @@ export class DocumentManager {
 
 		// Set up document update handler
 		doc.on("update", (update: Uint8Array, origin: any) => {
-			room.lastActivity = new Date();
-			this.broadcastUpdate(room, update, origin);
+			space.lastActivity = new Date();
+			this.broadcastUpdate(space, update, origin);
 		});
 
 		// Set up awareness change handler
 		awareness.on("change", ({ added, updated, removed }: any) => {
-			room.lastActivity = new Date();
-			this.broadcastAwareness(room, { added, updated, removed });
+			space.lastActivity = new Date();
+			this.broadcastAwareness(space, { added, updated, removed });
 		});
 
-		this.rooms.set(roomName, room);
-		logger.info(`Created room: ${roomName}`);
+		this.spaces.set(spaceName, space);
+		logger.info(`Created space: ${spaceName}`);
 
-		return room;
+		return space;
 	}
 
-	getRoom(roomName: string): YjsRoom | undefined {
-		return this.rooms.get(roomName);
+	getSpace(spaceName: string): YjsSpace | undefined {
+		return this.spaces.get(spaceName);
 	}
 
-	getOrCreateRoom(roomName: string): YjsRoom {
-		return this.getRoom(roomName) || this.createRoom(roomName);
+	getOrCreateSpace(spaceName: string): YjsSpace {
+		return this.getSpace(spaceName) || this.createSpace(spaceName);
 	}
 
-	addConnection(roomName: string, connection: YjsConnection): void {
-		const room = this.getOrCreateRoom(roomName);
-		room.connections.add(connection);
+	addConnection(spaceName: string, connection: YjsConnection): void {
+		const space = this.getOrCreateSpace(spaceName);
+		space.connections.add(connection);
 		this.connections.add(connection);
 
-		connection.roomName = roomName;
-		room.lastActivity = new Date();
+		connection.spaceName = spaceName;
+		space.lastActivity = new Date();
 
-		logger.info(`Connection added to room: ${roomName}`, {
-			connectionCount: room.connections.size,
+		logger.info(`Connection added to space: ${spaceName}`, {
+			connectionCount: space.connections.size,
 			userId: connection.userId,
 		});
 	}
 
 	removeConnection(connection: YjsConnection): void {
-		const room = this.rooms.get(connection.roomName);
-		if (room) {
-			room.connections.delete(connection);
-			room.lastActivity = new Date();
+		const space = this.spaces.get(connection.spaceName);
+		if (space) {
+			space.connections.delete(connection);
+			space.lastActivity = new Date();
 
-			logger.info(`Connection removed from room: ${connection.roomName}`, {
-				connectionCount: room.connections.size,
+			logger.info(`Connection removed from space: ${connection.spaceName}`, {
+				connectionCount: space.connections.size,
 				userId: connection.userId,
 			});
 
-			// Clean up empty rooms
-			if (room.connections.size === 0) {
+			// Clean up empty spaces
+			if (space.connections.size === 0) {
 				setTimeout(() => {
-					if (room.connections.size === 0) {
-						this.rooms.delete(connection.roomName);
-						logger.info(`Cleaned up empty room: ${connection.roomName}`);
+					if (space.connections.size === 0) {
+						this.spaces.delete(connection.spaceName);
+						logger.info(`Cleaned up empty space: ${connection.spaceName}`);
 					}
 				}, 30000); // 30 second delay before cleanup
 			}
@@ -99,11 +99,11 @@ export class DocumentManager {
 	}
 
 	private broadcastUpdate(
-		room: YjsRoom,
+		space: YjsSpace,
 		update: Uint8Array,
 		origin: any,
 	): void {
-		room.connections.forEach((conn) => {
+		space.connections.forEach((conn) => {
 			if (conn !== origin && conn.ws.readyState === 1) {
 				// WebSocket.OPEN
 				try {
@@ -114,7 +114,7 @@ export class DocumentManager {
 				} catch (error) {
 					logger.error("Failed to broadcast update", {
 						error: error instanceof Error ? error.message : String(error),
-						roomName: room.name,
+						spaceName: space.name,
 					});
 				}
 			}
@@ -122,7 +122,7 @@ export class DocumentManager {
 	}
 
 	private broadcastAwareness(
-		room: YjsRoom,
+		space: YjsSpace,
 		changes: { added: number[]; updated: number[]; removed: number[] },
 	): void {
 		const changedClients = changes.added
@@ -130,11 +130,11 @@ export class DocumentManager {
 			.concat(changes.removed);
 		if (changedClients.length > 0) {
 			const awarenessUpdate = encodeAwarenessUpdate(
-				room.awareness,
+				space.awareness,
 				changedClients,
 			);
 
-			room.connections.forEach((conn) => {
+			space.connections.forEach((conn) => {
 				if (conn.ws.readyState === 1) {
 					// WebSocket.OPEN
 					try {
@@ -145,7 +145,7 @@ export class DocumentManager {
 					} catch (error) {
 						logger.error("Failed to broadcast awareness", {
 							error: error instanceof Error ? error.message : String(error),
-							roomName: room.name,
+							spaceName: space.name,
 						});
 					}
 				}
@@ -153,29 +153,29 @@ export class DocumentManager {
 		}
 	}
 
-	private cleanupOldRooms(): void {
+	private cleanupOldSpaces(): void {
 		const cutoffTime = new Date(Date.now() - 60 * 60 * 1000); // 1 hour ago
 
-		for (const [roomName, room] of this.rooms.entries()) {
-			if (room.connections.size === 0 && room.lastActivity < cutoffTime) {
-				this.rooms.delete(roomName);
-				logger.info(`Cleaned up old room: ${roomName}`);
+		for (const [spaceName, space] of this.spaces.entries()) {
+			if (space.connections.size === 0 && space.lastActivity < cutoffTime) {
+				this.spaces.delete(spaceName);
+				logger.info(`Cleaned up old space: ${spaceName}`);
 			}
 		}
 	}
 
-	getRoomStats(): {
-		totalRooms: number;
+	getSpaceStats(): {
+		totalSpaces: number;
 		totalConnections: number;
-		rooms: Array<{ name: string; connections: number; lastActivity: Date }>;
+		spaces: Array<{ name: string; connections: number; lastActivity: Date }>;
 	} {
 		return {
-			totalRooms: this.rooms.size,
+			totalSpaces: this.spaces.size,
 			totalConnections: this.connections.size,
-			rooms: Array.from(this.rooms.values()).map((room) => ({
-				name: room.name,
-				connections: room.connections.size,
-				lastActivity: room.lastActivity,
+			spaces: Array.from(this.spaces.values()).map((space) => ({
+				name: space.name,
+				connections: space.connections.size,
+				lastActivity: space.lastActivity,
 			})),
 		};
 	}

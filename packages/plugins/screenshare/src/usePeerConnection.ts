@@ -11,7 +11,7 @@ export const usePeerConnection = (api: PluginAPI) => {
 	const knownUsers = useRef<Set<string>>(new Set());
 
 	const userId = api.getUserId();
-	const roomId = api.getRoomId();
+	const spaceId = api.getSpaceId();
 	const awareness = api.getAwareness();
 
 	// Initialize peer connection
@@ -19,7 +19,7 @@ export const usePeerConnection = (api: PluginAPI) => {
 		if (peer.current) return;
 
 		// TODO: Replace with your PeerJS server URL
-		const newPeer = new Peer(`${userId}_${roomId}`, {
+		const newPeer = new Peer(`${userId}_${spaceId}`, {
 			config: {
 				iceServers: [
 					{ urls: "stun:stun.l.google.com:19302" },
@@ -41,7 +41,7 @@ export const usePeerConnection = (api: PluginAPI) => {
 			call.answer(new MediaStream());
 
 			call.on("stream", (remoteStream) => {
-				// Extract the caller's user ID from the peer ID (format: userId_roomId)
+				// Extract the caller's user ID from the peer ID (format: userId_spaceId)
 				const callerUserId = call.peer.split("_")[0];
 
 				// Use a predictable stream ID based on the caller's user ID
@@ -61,66 +61,67 @@ export const usePeerConnection = (api: PluginAPI) => {
 				delete peers.current[call.peer];
 			});
 		});
-	}, [userId, roomId]);
+	}, [userId, spaceId]);
 
 	// Listen for new users joining and call them if we're broadcasting
 	useEffect(() => {
 		if (!awareness) return;
 
-		const handleAwarenessChange = () => {
+		const handleAwarenessChange =
 			// Only handle new users if we're actively broadcasting
-			if (!localStream.current) return;
+			() => {
+				if (!localStream.current) return;
 
-			const states = Array.from(awareness.getStates().values());
-			const currentUserIds = new Set<string>();
+				const states = Array.from(awareness.getStates().values());
+				const currentUserIds = new Set<string>();
 
-			// Collect all current user IDs
-			// biome-ignore lint/suspicious/noExplicitAny: we don't know the type of the state
-			states.forEach((state: any) => {
-				const remoteUser = state.user;
-				if (remoteUser && remoteUser.id !== userId) {
-					currentUserIds.add(remoteUser.id);
-				}
-			});
-
-			// Find truly new users (not seen before and not already being called)
-			currentUserIds.forEach((remoteUserId) => {
-				if (!knownUsers.current.has(remoteUserId)) {
-					knownUsers.current.add(remoteUserId);
-
-					// Only call if we're ready and not already calling this user
-					const remotePeerId = `${remoteUserId}_${roomId}`;
-					if (
-						localStream.current &&
-						peer.current &&
-						peerReady.current &&
-						!peers.current[remotePeerId]
-					) {
-						// Add a small delay to ensure the remote peer is ready
-						setTimeout(() => {
-							if (localStream.current && !peers.current[remotePeerId]) {
-								callUser(remoteUserId, localStream.current);
-							}
-						}, 1000);
+				// Collect all current user IDs
+				// biome-ignore lint/suspicious/noExplicitAny: we don't know the type of the state
+				states.forEach((state: any) => {
+					const remoteUser = state.user;
+					if (remoteUser && remoteUser.id !== userId) {
+						currentUserIds.add(remoteUser.id);
 					}
-				}
-			});
+				});
 
-			// Clean up known users who are no longer present
-			const removedUsers = Array.from(knownUsers.current).filter(
-				(userId) => !currentUserIds.has(userId),
-			);
-			removedUsers.forEach((userId) => {
-				knownUsers.current.delete(userId);
-			});
-		};
+				// Find truly new users (not seen before and not already being called)
+				currentUserIds.forEach((remoteUserId) => {
+					if (!knownUsers.current.has(remoteUserId)) {
+						knownUsers.current.add(remoteUserId);
+
+						// Only call if we're ready and not already calling this user
+						const remotePeerId = `${remoteUserId}_${spaceId}`;
+						if (
+							localStream.current &&
+							peer.current &&
+							peerReady.current &&
+							!peers.current[remotePeerId]
+						) {
+							// Add a small delay to ensure the remote peer is ready
+							setTimeout(() => {
+								if (localStream.current && !peers.current[remotePeerId]) {
+									callUser(remoteUserId, localStream.current);
+								}
+							}, 1000);
+						}
+					}
+				});
+
+				// Clean up known users who are no longer present
+				const removedUsers = Array.from(knownUsers.current).filter(
+					(userId) => !currentUserIds.has(userId),
+				);
+				removedUsers.forEach((userId) => {
+					knownUsers.current.delete(userId);
+				});
+			};
 
 		awareness.on("change", handleAwarenessChange);
 		return () => awareness.off("change", handleAwarenessChange);
-	}, [awareness, userId, roomId]);
+	}, [awareness]);
 
 	const callUser = (remoteUserId: string, stream: MediaStream) => {
-		const remotePeerId = `${remoteUserId}_${roomId}`;
+		const remotePeerId = `${remoteUserId}_${spaceId}`;
 
 		const call = peer.current?.call(remotePeerId, stream);
 		if (call) {

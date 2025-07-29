@@ -18,7 +18,7 @@ interface InfiniteCanvasProps {
 	accentColor?: string;
 	backendUrl: string;
 	userId: string;
-	roomId: string;
+	spaceId: string;
 }
 
 export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
@@ -26,7 +26,7 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 	accentColor = "#3b82f6",
 	backendUrl,
 	userId,
-	roomId,
+	spaceId,
 }) => {
 	const svgRef = useRef<SVGSVGElement>(null);
 
@@ -43,14 +43,14 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 	const documentManager = useDocumentManager({
 		backendUrl,
 		userId,
-		roomId,
+		spaceId,
 	});
 
 	// Yjs synchronization (only if backend URL and user ID are provided)
 	const yjsSync = useYjsSync({
 		backendUrl,
 		userId,
-		roomId,
+		spaceId,
 		accentColor,
 	});
 
@@ -68,7 +68,7 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 		mainDocument: yjsSync.mainDocument,
 		awareness: yjsSync.awareness,
 		userId,
-		roomId,
+		spaceId,
 	});
 
 	// Viewport and canvas state

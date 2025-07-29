@@ -18,7 +18,7 @@ src/
 ├── server.ts                # Server class with graceful shutdown
 ├── services/
 │   └── yjs/
-│       ├── document-manager.ts    # Yjs document and room management
+│       ├── document-manager.ts    # Yjs document and space management
 │       ├── index.ts               # Main Yjs service
 │       └── websocket-handler.ts   # WebSocket connection handling
 ├── types/
@@ -52,7 +52,7 @@ Environment variables:
 - `WS_PORT` - WebSocket server port (default: 1234)
 - `LOG_LEVEL` - Logging level: debug, info, warn, error (default: info)
 - `CORS_ORIGINS` - Comma-separated allowed origins
-- `YJS_MAX_ROOMS` - Maximum number of concurrent rooms (default: 1000)
+- `YJS_MAX_SPACES` - Maximum number of concurrent spaces (default: 1000)
 
 ## API Endpoints
 
@@ -62,8 +62,8 @@ Environment variables:
 - `GET /api/stats` - Real-time server statistics
 
 ### WebSocket Endpoints
-- `ws://localhost:1234/{roomName}?userId={userId}` - Connect to a Yjs room
-- Default room: `default-canvas`
+- `ws://localhost:1234/{spaceName}?userId={userId}` - Connect to a Yjs space
+- Default space: `default-canvas`
 
 ## Usage with Canvas
 
@@ -71,18 +71,18 @@ Environment variables:
 <InfiniteCanvas 
   backendUrl="ws://localhost:1234"
   userId="user-123"
-  roomId="my-canvas-room"
+  spaceId="my-canvas-space"
 />
 ```
 
 ## Features
 
 - ✅ **Modular Architecture**: Clean separation of concerns
-- ✅ **Multi-room Support**: Isolated document spaces
+- ✅ **Multi-space Support**: Isolated document spaces
 - ✅ **Real-time Sync**: Document and awareness synchronization
 - ✅ **Health Monitoring**: Connection health checks and stats
 - ✅ **Graceful Shutdown**: Proper cleanup on server stop
 - ✅ **Structured Logging**: Configurable log levels
 - ✅ **CORS Support**: Configurable cross-origin settings
-- ✅ **Auto Cleanup**: Automatic removal of empty rooms
+- ✅ **Auto Cleanup**: Automatic removal of empty spaces
 - ✅ **User Awareness**: Real-time user presence and cursors

@@ -28,19 +28,19 @@ export class PluginAPIImpl implements PluginAPI {
 	private yjsDocumentManager?: YjsDocumentManager;
 	private awareness?: Awareness;
 	private userId: string;
-	private roomId: string;
+	private spaceId: string;
 	private highlightedTools = new Set<string>();
 
 	constructor(
 		eventBus: EventBus,
 		accentColor = "#3b82f6",
 		userId = "",
-		roomId = "",
+		spaceId = "",
 	) {
 		this.eventBus = eventBus;
 		this.accentColor = accentColor;
 		this.userId = userId;
-		this.roomId = roomId;
+		this.spaceId = spaceId;
 	}
 
 	setYjsDocumentManager(manager: YjsDocumentManager | undefined): void {
@@ -402,9 +402,9 @@ export class PluginAPIImpl implements PluginAPI {
 		return this.userId;
 	}
 
-	// Room identification
-	getRoomId(): string {
-		return this.roomId;
+	// Space identification
+	getSpaceId(): string {
+		return this.spaceId;
 	}
 
 	// Yjs synchronization

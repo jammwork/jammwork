@@ -10,8 +10,8 @@ export const serverConfig = {
 	yjs: {
 		enablePersistence: process.env.YJS_PERSISTENCE === "true",
 		persistencePath: process.env.YJS_PERSISTENCE_PATH || "./yjs-docs",
-		maxRooms: process.env.YJS_MAX_ROOMS
-			? parseInt(process.env.YJS_MAX_ROOMS)
+		maxSpaces: process.env.YJS_MAX_SPACES
+			? parseInt(process.env.YJS_MAX_SPACES)
 			: 1000,
 	},
 	cors: {

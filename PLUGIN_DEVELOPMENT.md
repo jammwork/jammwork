@@ -315,7 +315,7 @@ api.registerElementType(type: string, renderer: ElementRenderer): Disposable
 api.getYjsDocumentManager(): YjsDocumentManager
 api.getAwareness(): Awareness
 api.getUserId(): string
-api.getRoomId(): string
+api.getSpaceId(): string
 ```
 
 The canvas supports real-time collaboration through Yjs synchronization. When enabled, plugins can access:
@@ -323,14 +323,14 @@ The canvas supports real-time collaboration through Yjs synchronization. When en
 - **Document Manager**: Create and manage synchronized Yjs documents for plugin data
 - **Awareness**: Access real-time user presence and state information
 - **User Identity**: Get the current user's unique identifier
-- **Room Context**: Get the current collaboration room identifier
+- **Space Context**: Get the current collaboration space identifier
 
 Plugins can use these APIs to create their own synchronized documents and track user presence:
 
 ```typescript
-// Get user and room context
+// Get user and space context
 const userId = api.getUserId();
-const roomId = api.getRoomId();
+const spaceId = api.getSpaceId();
 
 // Access Yjs document manager
 const yjsManager = api.getYjsDocumentManager();
@@ -352,7 +352,7 @@ const currentUsers = Array.from(awareness.getStates().values());
 // Listen for user presence changes
 awareness.on("change", () => {
   const users = Array.from(awareness.getStates().values());
-  console.log("Users in room:", users.length);
+  console.log("Users in space:", users.length);
 });
 
 // Set custom awareness state for your plugin
@@ -455,7 +455,7 @@ Here's how a real-time screen sharing plugin uses the new awareness APIs and too
 // Screen Sharing Plugin using awareness for peer discovery
 const usePeerConnection = (api: PluginAPI) => {
   const userId = api.getUserId();
-  const roomId = api.getRoomId();
+  const spaceId = api.getSpaceId();
   const awareness = api.getAwareness();
 
   // Track other users for peer-to-peer connections
@@ -592,7 +592,7 @@ const setPluginImplementation = (startFn: () => Promise<string>) => {
 - Use the new collaboration APIs for real-time features:
   ```typescript
   const userId = api.getUserId();
-  const roomId = api.getRoomId();
+  const spaceId = api.getSpaceId();
   const awareness = api.getAwareness();
   const yjsManager = api.getYjsDocumentManager();
   
@@ -906,7 +906,7 @@ export const createRectangleLayer = (api: PluginAPI): React.FC => () => {
 
 **Elements not syncing between users:**
 - Ensure you're using PluginAPI methods (`api.createElement()`, `api.updateElement()`, `api.deleteElement()`)
-- Check that `backendUrl`, `userId`, and `roomId` props are provided to `InfiniteCanvas`
+- Check that `backendUrl`, `userId`, and `spaceId` props are provided to `InfiniteCanvas`
 - Verify WebSocket server is running and accessible
 
 **Cannot select elements created by other users:**

@@ -15,21 +15,21 @@ export class WebSocketHandler {
 
 	handleConnection(
 		ws: WebSocket,
-		roomName: string,
+		spaceName: string,
 		userId?: string,
 	): YjsConnection {
-		const room = this.documentManager.getOrCreateRoom(roomName);
+		const space = this.documentManager.getOrCreateSpace(spaceName);
 
 		const connection: YjsConnection = {
 			ws,
-			doc: room.doc,
-			awareness: room.awareness,
-			roomName,
+			doc: space.doc,
+			awareness: space.awareness,
+			spaceName,
 			userId,
 			isAlive: true,
 		};
 
-		this.documentManager.addConnection(roomName, connection);
+		this.documentManager.addConnection(spaceName, connection);
 		this.setupConnectionHandlers(connection);
 		this.sendSyncStep1(connection);
 
@@ -46,7 +46,7 @@ export class WebSocketHandler {
 			} catch (error) {
 				logger.error("Error handling WebSocket message", {
 					error: error instanceof Error ? error.message : String(error),
-					roomName: connection.roomName,
+					spaceName: connection.spaceName,
 					userId: connection.userId,
 				});
 			}
@@ -55,7 +55,7 @@ export class WebSocketHandler {
 		// Handle connection close
 		ws.on("close", (code, reason) => {
 			logger.info("WebSocket connection closed", {
-				roomName: connection.roomName,
+				spaceName: connection.spaceName,
 				userId: connection.userId,
 				code,
 				reason: reason.toString(),
@@ -67,7 +67,7 @@ export class WebSocketHandler {
 		ws.on("error", (error) => {
 			logger.error("WebSocket connection error", {
 				error: error.message,
-				roomName: connection.roomName,
+				spaceName: connection.spaceName,
 				userId: connection.userId,
 			});
 			this.documentManager.removeConnection(connection);
@@ -93,7 +93,7 @@ export class WebSocketHandler {
 			default:
 				logger.warn("Unknown message type", {
 					messageType,
-					roomName: connection.roomName,
+					spaceName: connection.spaceName,
 					userId: connection.userId,
 				});
 		}
@@ -116,7 +116,7 @@ export class WebSocketHandler {
 		} catch (error) {
 			logger.error("Failed to handle sync message", {
 				error: error instanceof Error ? error.message : String(error),
-				roomName: connection.roomName,
+				spaceName: connection.spaceName,
 				userId: connection.userId,
 			});
 		}
@@ -134,7 +134,7 @@ export class WebSocketHandler {
 		} catch (error) {
 			logger.error("Failed to handle awareness message", {
 				error: error instanceof Error ? error.message : String(error),
-				roomName: connection.roomName,
+				spaceName: connection.spaceName,
 				userId: connection.userId,
 			});
 		}
@@ -151,17 +151,17 @@ export class WebSocketHandler {
 		} catch (error) {
 			logger.error("Failed to send sync step 1", {
 				error: error instanceof Error ? error.message : String(error),
-				roomName: connection.roomName,
+				spaceName: connection.spaceName,
 				userId: connection.userId,
 			});
 		}
 	}
 
 	pingConnections(): void {
-		this.documentManager.getRoomStats().rooms.forEach((roomInfo) => {
-			const room = this.documentManager.getRoom(roomInfo.name);
-			if (room) {
-				room.connections.forEach((connection) => {
+		this.documentManager.getSpaceStats().spaces.forEach((spaceInfo) => {
+			const space = this.documentManager.getSpace(spaceInfo.name);
+			if (space) {
+				space.connections.forEach((connection) => {
 					if (connection.isAlive === false) {
 						connection.ws.terminate();
 						return;

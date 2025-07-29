@@ -15,7 +15,7 @@ interface UsePluginSystemProps {
 	mainDocument?: Y.Doc | null;
 	awareness?: Awareness;
 	userId?: string;
-	roomId?: string;
+	spaceId?: string;
 }
 
 export const usePluginSystem = ({
@@ -25,12 +25,12 @@ export const usePluginSystem = ({
 	mainDocument,
 	awareness,
 	userId = "",
-	roomId = "",
+	spaceId = "",
 }: UsePluginSystemProps = {}) => {
 	const [pluginsLoaded, setPluginsLoaded] = useState(false);
 
 	// Create a key for the plugin system based on important parameters
-	const pluginSystemKey = `${accentColor}-${userId}-${roomId}`;
+	const pluginSystemKey = `${accentColor}-${userId}-${spaceId}`;
 
 	// Initialize plugin system once and keep stable reference
 	const pluginSystemRef = useRef<{
@@ -46,7 +46,7 @@ export const usePluginSystem = ({
 		pluginSystemRef.current.key !== pluginSystemKey
 	) {
 		const eventBus = new EventBus();
-		const api = new PluginAPIImpl(eventBus, accentColor, userId, roomId);
+		const api = new PluginAPIImpl(eventBus, accentColor, userId, spaceId);
 
 		// Set the document manager immediately when creating the API
 		if (yjsDocumentManager) {
@@ -235,7 +235,7 @@ export const usePluginSystem = ({
 		pluginSystem?.manager,
 		yjsDocumentManager,
 		userId,
-		roomId,
+		spaceId,
 	]);
 
 	return {

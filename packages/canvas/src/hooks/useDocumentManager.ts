@@ -6,13 +6,13 @@ import * as Y from "yjs";
 interface UseDocumentManagerProps {
 	backendUrl: string;
 	userId: string;
-	roomId?: string;
+	spaceId?: string;
 }
 
 export const useDocumentManager = ({
 	backendUrl,
 	userId,
-	roomId = "default-canvas",
+	spaceId = "default-canvas",
 }: UseDocumentManagerProps): YjsDocumentManager => {
 	const documentsRef = useRef<Map<string, Y.Doc>>(new Map());
 	const providersRef = useRef<Map<string, WebsocketProvider>>(new Map());
@@ -37,7 +37,7 @@ export const useDocumentManager = ({
 
 					const provider = new WebsocketProvider(
 						backendUrl,
-						`${roomId}-${documentId}`,
+						`${spaceId}-${documentId}`,
 						doc,
 					);
 					provider.awareness.setLocalStateField("user", {

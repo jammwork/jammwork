@@ -1,4 +1,4 @@
-import { ThemeProvider } from "@jammwork/ui";
+import { ThemeProvider, Toaster } from "@jammwork/ui";
 import { StrictMode } from "react";
 import * as ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -18,6 +18,7 @@ root.render(
 			<BrowserRouter>
 				<App />
 			</BrowserRouter>
+			<Toaster theme='system' />
 		</ThemeProvider>
 	</StrictMode>,
 );

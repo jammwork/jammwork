@@ -88,7 +88,7 @@ interface PluginAPI {
   // Theme and context
   getAccentColor(): string;
   getUserId(): string;
-  getRoomId(): string;
+  getSpaceId(): string;
   
   // Real-time collaboration
   getYjsDocumentManager(): YjsDocumentManager;
@@ -450,7 +450,7 @@ Access to user presence and awareness information.
 // Get awareness instance
 const awareness = api.getAwareness();
 
-// Get current users in the room
+// Get current users in the space
 const users = Array.from(awareness.getStates().values());
 
 // Set local awareness state
@@ -463,7 +463,7 @@ awareness.setLocalStateField('myPlugin', {
 // Listen for user changes
 awareness.on('change', () => {
   const updatedUsers = Array.from(awareness.getStates().values());
-  console.log(`${updatedUsers.length} users in room`);
+  console.log(`${updatedUsers.length} users in space`);
 });
 ```
 

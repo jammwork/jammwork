@@ -15,13 +15,13 @@ import { useParams } from "react-router-dom";
 import { getRandomPastelColor } from "@/lib/colors";
 
 function EditorPage() {
-	const { roomId } = useParams();
+	const { spaceId } = useParams();
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	const name = localStorage.getItem("name");
 	const color = localStorage.getItem("color") ?? getRandomPastelColor();
 
-	if (!roomId || !name) {
+	if (!spaceId || !name) {
 		return (
 			<AlertDialog open>
 				<AlertDialogContent>
@@ -53,7 +53,7 @@ function EditorPage() {
 			<InfiniteCanvas
 				backendUrl={import.meta.env.VITE_BACKEND_URL}
 				userId={name}
-				roomId={roomId}
+				spaceId={spaceId}
 				accentColor={color}
 				plugins={[ScreenSharePlugin]}
 			/>

@@ -9,7 +9,7 @@ import { useDocumentManager } from "./useDocumentManager";
 interface UseYjsSyncProps {
 	backendUrl: string;
 	userId: string;
-	roomId: string;
+	spaceId: string;
 	accentColor?: string;
 }
 
@@ -25,7 +25,7 @@ interface YjsSyncResult {
 export const useYjsSync = ({
 	backendUrl,
 	userId,
-	roomId = "default-canvas",
+	spaceId = "default-canvas",
 	accentColor = "#3b82f6",
 }: UseYjsSyncProps): YjsSyncResult => {
 	const mainDocRef = useRef<Y.Doc | null>(null);
@@ -35,7 +35,7 @@ export const useYjsSync = ({
 	const documentManager = useDocumentManager({
 		backendUrl,
 		userId,
-		roomId,
+		spaceId,
 	});
 
 	// Initialize main canvas document
@@ -45,7 +45,7 @@ export const useYjsSync = ({
 		const doc = new Y.Doc();
 		const provider = new WebsocketProvider(
 			backendUrl.replace("http", "ws"),
-			roomId,
+			spaceId,
 			doc,
 		);
 

@@ -1,9 +1,9 @@
-import { WebSocketServer } from "ws";
 import type { Server as HttpServer } from "node:http";
-import { DocumentManager } from "./document-manager.js";
-import { WebSocketHandler } from "./websocket-handler.js";
+import { WebSocketServer } from "ws";
 import { serverConfig } from "../../config/server.js";
 import { logger } from "../../utils/logger.js";
+import { DocumentManager } from "./document-manager.js";
+import { WebSocketHandler } from "./websocket-handler.js";
 
 export class YjsService {
 	private wss: WebSocketServer;
@@ -35,12 +35,12 @@ export class YjsService {
 	private setupWebSocketServer(): void {
 		this.wss.on("connection", (ws, request) => {
 			const url = new URL(request.url || "/", `http://${request.headers.host}`);
-			const roomName = url.pathname.slice(1) || "default-canvas";
+			const spaceName = url.pathname.slice(1) || "default-canvas";
 			const userId = url.searchParams.get("userId") || undefined;
 
-			logger.info("Client connected", { roomName, userId });
+			logger.info("Client connected", { spaceName, userId });
 
-			this.wsHandler.handleConnection(ws, roomName, userId);
+			this.wsHandler.handleConnection(ws, spaceName, userId);
 		});
 
 		this.wss.on("error", (error) => {
@@ -65,7 +65,7 @@ export class YjsService {
 
 	getStats() {
 		return {
-			...this.documentManager.getRoomStats(),
+			...this.documentManager.getSpaceStats(),
 			serverInfo: {
 				host: serverConfig.websocket.host,
 				port: serverConfig.websocket.port,
