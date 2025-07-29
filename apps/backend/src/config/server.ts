@@ -16,7 +16,7 @@ export const serverConfig = {
 	},
 	cors: {
 		origins: process.env.CORS_ORIGINS?.split(",") || [
-			"http://localhost:5173",
+			"http://localhost:4200",
 			"http://localhost:3000",
 		],
 		credentials: true,

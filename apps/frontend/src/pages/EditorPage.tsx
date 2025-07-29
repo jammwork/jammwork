@@ -1,5 +1,4 @@
 import { InfiniteCanvas } from "@jammwork/canvas";
-import { ScreenSharePlugin } from "@jammwork/plugin-screenshare";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -10,16 +9,72 @@ import {
 	AlertDialogTitle,
 	Input,
 } from "@jammwork/ui";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
+import { ApiError, spaceApi } from "@/lib/api";
 import { getRandomPastelColor } from "@/lib/colors";
+import type { Space } from "@/lib/types";
+import { plugins } from "@/plugins";
 
 function EditorPage() {
-	const { spaceId } = useParams();
+	const { spaceId } = useParams() as { spaceId: string };
 	const inputRef = useRef<HTMLInputElement>(null);
+	const [space, setSpace] = useState<Space | null>(null);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 
 	const name = localStorage.getItem("name");
 	const color = localStorage.getItem("color") ?? getRandomPastelColor();
+
+	useEffect(() => {
+		if (spaceId) {
+			loadSpace();
+		}
+	}, [spaceId]);
+
+	const loadSpace = async () => {
+		try {
+			setLoading(true);
+			setError(null);
+			const spaceData = await spaceApi.getSpaceById(spaceId);
+			setSpace(spaceData);
+		} catch (err) {
+			if (err instanceof ApiError) {
+				setError(`Failed to load space: ${err.message}`);
+			} else {
+				setError('Failed to load space');
+			}
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const getEnabledPlugins = () => {
+		if (!space) return [];
+
+		return plugins.filter(plugin =>
+			space.pluginIds.includes(plugin.id)
+		);
+	};
+
+	if (loading) {
+		return (
+			<div className="w-screen h-screen flex items-center justify-center">
+				<div className="text-lg">Loading space...</div>
+			</div>
+		);
+	}
+
+	if (error || !space) {
+		return (
+			<div className="w-screen h-screen flex items-center justify-center">
+				<div className="text-lg text-destructive">
+					{error || 'Space not found'}
+				</div>
+			</div>
+		);
+	}
+
 
 	if (!spaceId || !name) {
 		return (
@@ -48,6 +103,7 @@ function EditorPage() {
 		);
 	}
 
+
 	return (
 		<div className="w-screen h-screen">
 			<InfiniteCanvas
@@ -55,7 +111,7 @@ function EditorPage() {
 				userId={name}
 				spaceId={spaceId}
 				accentColor={color}
-				plugins={[ScreenSharePlugin]}
+				plugins={getEnabledPlugins()}
 			/>
 		</div>
 	);

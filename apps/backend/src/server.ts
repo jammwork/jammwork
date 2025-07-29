@@ -2,15 +2,22 @@ import type { Server as HttpServer } from "node:http";
 import { serve } from "@hono/node-server";
 import { createApp } from "./app.js";
 import { serverConfig } from "./config/server.js";
+import { DatabaseService } from "./services/database/index.js";
 import { YjsService } from "./services/yjs/index.js";
 import { logger } from "./utils/logger.js";
 
 export class Server {
 	private yjsService: YjsService | null = null;
 	private httpServer: HttpServer | null = null;
+	private dbService: DatabaseService | null = null;
 
 	async start() {
 		try {
+			// Initialize database service
+			this.dbService = new DatabaseService();
+			await this.dbService.initialize();
+			logger.info("Database service initialized");
+
 			// Create and start HTTP server
 			const app = createApp();
 
@@ -56,6 +63,10 @@ export class Server {
 			try {
 				if (this.yjsService) {
 					await this.yjsService.close();
+				}
+
+				if (this.dbService) {
+					await this.dbService.close();
 				}
 
 				if (this.httpServer) {
