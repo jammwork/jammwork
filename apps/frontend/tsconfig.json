@@ -8,15 +8,15 @@
 		}
 	},
 	"references": [
-    {
-      "path": "../../packages/ui"
-    },
-    {
-      "path": "../../packages/canvas"
-    },
-    {
-      "path": "./tsconfig.app.json"
-    }
-  ],
+		{
+			"path": "../../packages/ui"
+		},
+		{
+			"path": "../../packages/canvas"
+		},
+		{
+			"path": "./tsconfig.app.json"
+		}
+	],
 	"extends": "../../tsconfig.base.json"
 }

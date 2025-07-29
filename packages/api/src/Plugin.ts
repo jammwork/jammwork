@@ -117,7 +117,6 @@ export interface PluginAPI {
 	};
 
 	// UI extensions
-	registerToolbarComponent(component: React.ComponentType): Disposable;
 	registerContextMenuItems(items: ContextMenuItem[]): Disposable;
 	registerLayerComponent(component: React.ComponentType): Disposable;
 	registerMenuItem(item: MenuItem): Disposable;

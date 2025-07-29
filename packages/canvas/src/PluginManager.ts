@@ -82,9 +82,6 @@ export class PluginManager {
 			canvasToScreen: this.api.canvasToScreen.bind(this.api),
 
 			// UI extensions
-			registerToolbarComponent: this.api.registerToolbarComponent.bind(
-				this.api,
-			),
 			registerContextMenuItems: this.api.registerContextMenuItems.bind(
 				this.api,
 			),

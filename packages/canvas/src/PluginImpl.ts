@@ -21,7 +21,6 @@ export class PluginAPIImpl implements PluginAPI {
 	private tools = new Map<string, ToolDefinition>();
 	private mainTools = new Map<string, ToolDefinition>();
 	private secondaryToolsMap = new Map<string, ToolDefinition[]>(); // main tool id -> secondary tools
-	private toolbarComponents: React.ComponentType[] = [];
 	private contextMenuItems: ContextMenuItem[] = [];
 	private layerComponents: React.ComponentType[] = [];
 	private menuItems: MenuItem[] = [];
@@ -150,19 +149,6 @@ export class PluginAPIImpl implements PluginAPI {
 	}
 
 	// UI extensions
-	registerToolbarComponent(component: React.ComponentType): Disposable {
-		this.toolbarComponents.push(component);
-
-		return {
-			dispose: () => {
-				const index = this.toolbarComponents.indexOf(component);
-				if (index > -1) {
-					this.toolbarComponents.splice(index, 1);
-				}
-			},
-		};
-	}
-
 	registerContextMenuItems(items: ContextMenuItem[]): Disposable {
 		this.contextMenuItems.push(...items);
 
@@ -384,10 +370,6 @@ export class PluginAPIImpl implements PluginAPI {
 
 	isToolHighlighted(toolId: string): boolean {
 		return this.highlightedTools.has(toolId);
-	}
-
-	getToolbarComponents(): React.ComponentType[] {
-		return [...this.toolbarComponents];
 	}
 
 	getContextMenuItems(): ContextMenuItem[] {

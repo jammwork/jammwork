@@ -21,7 +21,6 @@ export abstract class PluginAPIBase implements PluginAPI {
 	protected tools = new Map<string, ToolDefinition>();
 	protected mainTools = new Map<string, ToolDefinition>();
 	protected secondaryToolsMap = new Map<string, ToolDefinition[]>(); // main tool id -> secondary tools
-	protected toolbarComponents: React.ComponentType[] = [];
 	protected contextMenuItems: ContextMenuItem[] = [];
 	protected layerComponents: React.ComponentType[] = [];
 	protected menuItems: MenuItem[] = [];
@@ -100,19 +99,6 @@ export abstract class PluginAPIBase implements PluginAPI {
 	}
 
 	// UI extensions
-	registerToolbarComponent(component: React.ComponentType): Disposable {
-		this.toolbarComponents.push(component);
-
-		return {
-			dispose: () => {
-				const index = this.toolbarComponents.indexOf(component);
-				if (index > -1) {
-					this.toolbarComponents.splice(index, 1);
-				}
-			},
-		};
-	}
-
 	registerContextMenuItems(items: ContextMenuItem[]): Disposable {
 		this.contextMenuItems.push(...items);
 
@@ -183,10 +169,6 @@ export abstract class PluginAPIBase implements PluginAPI {
 
 	getSecondaryTools(mainToolId: string): ToolDefinition[] {
 		return this.secondaryToolsMap.get(mainToolId) || [];
-	}
-
-	getToolbarComponents(): React.ComponentType[] {
-		return [...this.toolbarComponents];
 	}
 
 	getContextMenuItems(): ContextMenuItem[] {

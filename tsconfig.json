@@ -3,20 +3,20 @@
 	"compileOnSave": false,
 	"files": [],
 	"references": [
-    {
-      "path": "./apps/frontend"
-    },
-    {
-      "path": "./packages/canvas"
-    },
-    {
-      "path": "./packages/ui"
-    },
-    {
-      "path": "./packages/api"
-    },
-    {
-      "path": "./packages/plugins/screenshare"
-    }
-  ]
+		{
+			"path": "./apps/frontend"
+		},
+		{
+			"path": "./packages/canvas"
+		},
+		{
+			"path": "./packages/ui"
+		},
+		{
+			"path": "./packages/api"
+		},
+		{
+			"path": "./packages/plugins/screenshare"
+		}
+	]
 }

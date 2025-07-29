@@ -739,15 +739,20 @@ api.registerContextMenuItems([
 ]);
 ```
 
-### Custom Toolbar Components
+### Custom Menu Items
 ```typescript
-const YourToolbarComponent = () => (
-  <button onClick={() => console.log("Custom button clicked")}>
+const YourMenuComponent = () => (
+  <button className="bg-white rounded-lg p-2 shadow-sm" onClick={() => console.log("Custom button clicked")}>
     Custom Action
   </button>
 );
 
-api.registerToolbarComponent(YourToolbarComponent);
+api.registerMenuItem({
+  id: "your-menu-item",
+  component: YourMenuComponent,
+  position: "top-right",
+  order: 10
+});
 ```
 
 ### Element Interaction

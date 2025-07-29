@@ -59,8 +59,8 @@ interface PluginAPI {
   
   // UI components
   registerLayerComponent(component: React.ComponentType): Disposable;
-  registerToolbarComponent(component: React.ComponentType): Disposable;
   registerContextMenuItems(items: ContextMenuItem[]): Disposable;
+  registerMenuItem(item: MenuItem): Disposable;
   
   // Event system
   on<T extends PluginEvent>(event: T, handler: (data: PluginEventData[T]) => void): Disposable;
