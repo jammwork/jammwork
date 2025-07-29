@@ -3,6 +3,9 @@
 	"version": "0.0.0",
 	"license": "MIT",
 	"scripts": {
+		"backend": "nx dev backend",
+		"frontend": "nx dev frontend",
+		"dev": "nx run-many -t dev -p backend frontend",
 		"format": "biome format --write .",
 		"prepare": "husky",
 		"docs:dev": "vitepress dev docs",
