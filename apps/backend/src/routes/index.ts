@@ -3,6 +3,7 @@ import { DatabaseService } from "../services/database/index.js";
 import { SpaceService } from "../services/space/index.js";
 import { homeRouter } from "./home.js";
 import { createSpaceRouter } from "./spaces.js";
+import { userRouter } from "./user.js";
 
 const apiRouter = new Hono();
 
@@ -18,6 +19,7 @@ dbService.initialize().catch((error) => {
 // Mount routers
 apiRouter.route("/", homeRouter);
 apiRouter.route("/api/spaces", createSpaceRouter(spaceService));
+apiRouter.route("/api", userRouter);
 
 // API stats endpoint
 apiRouter.get("/api/stats", async (c) => {
