@@ -9,6 +9,7 @@ import { useDocumentManager } from "./useDocumentManager";
 interface UseYjsSyncProps {
 	backendUrl: string;
 	userId: string;
+	userName: string;
 	spaceId: string;
 	accentColor?: string;
 }
@@ -25,6 +26,7 @@ interface YjsSyncResult {
 export const useYjsSync = ({
 	backendUrl,
 	userId,
+	userName,
 	spaceId = "default-canvas",
 	accentColor = "#3b82f6",
 }: UseYjsSyncProps): YjsSyncResult => {
@@ -52,7 +54,7 @@ export const useYjsSync = ({
 		// Set user awareness data
 		provider.awareness.setLocalStateField("user", {
 			id: userId,
-			name: userId,
+			name: userName,
 			color: accentColor,
 			cursor: { x: 0, y: 0 },
 		});

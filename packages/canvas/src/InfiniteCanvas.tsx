@@ -18,6 +18,7 @@ interface InfiniteCanvasProps {
 	accentColor?: string;
 	backendUrl: string;
 	userId: string;
+	userName: string;
 	spaceId: string;
 }
 
@@ -26,6 +27,7 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 	accentColor = "#3b82f6",
 	backendUrl,
 	userId,
+	userName,
 	spaceId,
 }) => {
 	const svgRef = useRef<SVGSVGElement>(null);
@@ -50,6 +52,7 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 	const yjsSync = useYjsSync({
 		backendUrl,
 		userId,
+		userName,
 		spaceId,
 		accentColor,
 	});

@@ -34,14 +34,16 @@ export const UserCursors: React.FC<UserCursorsProps> = ({
 			const now = Date.now();
 
 			awareness.getStates().forEach((state) => {
-				if (state.user && state.user.id !== currentUserId) {
-					users.push({
-						id: state.user.id,
-						name: state.user.name,
-						color: state.user.color,
-						cursor: state.user.cursor || { x: 0, y: 0 },
-						lastSeen: now,
-					});
+				if (state.user) {
+					if (state.user.id !== currentUserId) {
+						users.push({
+							id: state.user.id,
+							name: state.user.name,
+							color: state.user.color,
+							cursor: state.user.cursor || { x: 0, y: 0 },
+							lastSeen: now,
+						});
+					}
 				}
 			});
 			setOtherUsers(users);
