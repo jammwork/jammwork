@@ -147,7 +147,7 @@ importers:
         version: link:../../packages/canvas
       '@jammwork/plugin-screenshare':
         specifier: workspace:*
-        version: link:../../packages/plugin-screenshare
+        version: link:../../packages/plugins/screenshare
       '@jammwork/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -222,11 +222,11 @@ importers:
         specifier: ^5.0.1
         version: 5.0.6(@types/react@19.0.0)(react@19.0.0)(use-sync-external-store@1.5.0(react@19.0.0))
 
-  packages/plugin-screenshare:
+  packages/plugins/screenshare:
     dependencies:
       '@jammwork/api':
         specifier: workspace:*
-        version: link:../api
+        version: link:../../api
       lucide-react:
         specifier: ^0.525.0
         version: 0.525.0(react@19.0.0)
