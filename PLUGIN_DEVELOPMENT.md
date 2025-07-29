@@ -280,7 +280,6 @@ Control whether a tool appears highlighted in the toolbar, independent of the cu
 #### UI Components
 ```typescript
 api.registerLayerComponent(component: React.ComponentType): Disposable
-api.registerToolbarComponent(component: React.ComponentType): Disposable
 api.registerContextMenuItems(items: ContextMenuItem[]): Disposable
 ```
 
