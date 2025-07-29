@@ -2,12 +2,12 @@
 	"files": [],
 	"include": [],
 	"references": [
-		{
-			"path": "../api"
-		},
-		{
-			"path": "./tsconfig.lib.json"
-		}
-	],
-	"extends": "../../tsconfig.base.json"
+    {
+      "path": "../../api"
+    },
+    {
+      "path": "./tsconfig.lib.json"
+    }
+  ],
+	"extends": "../../../tsconfig.base.json"
 }

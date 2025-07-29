@@ -1,5 +1,5 @@
 {
-	"extends": "../../tsconfig.base.json",
+	"extends": "../../../tsconfig.base.json",
 	"compilerOptions": {
 		"lib": ["dom"],
 		"outDir": "dist",
@@ -27,8 +27,8 @@
 	],
 	"include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"],
 	"references": [
-		{
-			"path": "../api/tsconfig.lib.json"
-		}
-	]
+    {
+      "path": "../../api/tsconfig.lib.json"
+    }
+  ]
 }
