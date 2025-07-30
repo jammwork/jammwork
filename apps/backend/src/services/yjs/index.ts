@@ -89,18 +89,19 @@ export class YjsService {
 	}
 
 	async close(): Promise<void> {
-		return new Promise(async (resolve) => {
+		return new Promise((resolve) => {
 			if (this.pingInterval) {
 				clearInterval(this.pingInterval);
 				this.pingInterval = null;
 			}
 
 			// Persist all spaces before closing
-			await this.documentManager.cleanup();
-
-			this.wss.close(() => {
-				logger.info("Yjs WebSocket server closed");
-				resolve();
+			this.documentManager.cleanup().then(() => {
+				logger.info("YjsService closed");
+				this.wss.close(() => {
+					logger.info("Yjs WebSocket server closed");
+					resolve();
+				});
 			});
 		});
 	}
