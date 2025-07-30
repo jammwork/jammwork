@@ -20,6 +20,9 @@
 		},
 		{
 			"path": "./tools/jammwork"
+		},
+		{
+			"path": "./packages/plugins/mindmap"
 		}
 	]
 }

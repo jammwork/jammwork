@@ -134,7 +134,7 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 
 	return (
 		<div
-			className="relative w-full h-screen overflow-hidden bg-background"
+			className="relative w-full h-screen overflow-hidden bg-background select-none"
 			style={containerStyle}
 		>
 			<CanvasContextMenu pluginApi={api} svgRef={svgRef}>

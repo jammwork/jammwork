@@ -15,6 +15,7 @@
 	"dependencies": {
 		"@fontsource/ubuntu": "^5.2.6",
 		"@jammwork/canvas": "workspace:*",
+		"@jammwork/plugin-mindmap": "workspace:*",
 		"@jammwork/plugin-screenshare": "workspace:*",
 		"@jammwork/ui": "workspace:*",
 		"@tanstack/react-query": "^5.83.0",

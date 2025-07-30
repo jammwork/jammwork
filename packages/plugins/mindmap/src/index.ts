@@ -1,0 +1,1 @@
+export { MindmapPlugin } from "./MindmapPlugin";

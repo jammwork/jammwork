@@ -169,6 +169,9 @@ importers:
       '@jammwork/canvas':
         specifier: workspace:*
         version: link:../../packages/canvas
+      '@jammwork/plugin-mindmap':
+        specifier: workspace:*
+        version: link:../../packages/plugins/mindmap
       '@jammwork/plugin-screenshare':
         specifier: workspace:*
         version: link:../../packages/plugins/screenshare
@@ -249,6 +252,18 @@ importers:
         specifier: ^5.0.1
         version: 5.0.6(@types/react@19.0.0)(react@19.0.0)(use-sync-external-store@1.5.0(react@19.0.0))
 
+  packages/plugins/mindmap:
+    dependencies:
+      '@jammwork/api':
+        specifier: workspace:*
+        version: link:../../api
+      lucide-react:
+        specifier: ^0.525.0
+        version: 0.525.0(react@19.0.0)
+      zustand:
+        specifier: ^5.0.1
+        version: 5.0.6(@types/react@19.0.0)(react@19.0.0)(use-sync-external-store@1.5.0(react@19.0.0))
+
   packages/plugins/screenshare:
     dependencies:
       '@jammwork/api':
@@ -260,18 +275,6 @@ importers:
       peerjs:
         specifier: ^1.5.5
         version: 1.5.5
-      zustand:
-        specifier: ^5.0.1
-        version: 5.0.6(@types/react@19.0.0)(react@19.0.0)(use-sync-external-store@1.5.0(react@19.0.0))
-
-  packages/plugins/shape-tool:
-    dependencies:
-      '@jammwork/api':
-        specifier: workspace:*
-        version: link:../../api
-      lucide-react:
-        specifier: ^0.525.0
-        version: 0.525.0(react@19.0.0)
       zustand:
         specifier: ^5.0.1
         version: 5.0.6(@types/react@19.0.0)(react@19.0.0)(use-sync-external-store@1.5.0(react@19.0.0))
