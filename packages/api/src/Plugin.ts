@@ -33,7 +33,7 @@ export interface Element {
 }
 
 export interface ElementRenderer {
-	render(element: Element, context: RenderContext): React.ReactNode;
+	render(element: Element, context?: RenderContext): React.ReactNode;
 	getBounds(element: Element): {
 		x: number;
 		y: number;
@@ -123,6 +123,7 @@ export interface PluginAPI {
 	registerMenuItem(item: MenuItem): Disposable;
 
 	// Registry access methods
+	getRegisteredElementTypes(): Map<string, ElementRenderer>;
 	getRegisteredTools(): Map<string, ToolDefinition>;
 	getMainTools(): Map<string, ToolDefinition>;
 	getSecondaryTools(mainToolId: string): ToolDefinition[];
