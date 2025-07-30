@@ -1,5 +1,7 @@
+import type { PluginAPI } from "@jammwork/api";
 import type React from "react";
 import { forwardRef, useMemo } from "react";
+import { ElementsLayer } from "./ElementsLayer";
 import { Grid } from "./Grid";
 import { SelectionLayer } from "./SelectionLayer";
 
@@ -8,6 +10,7 @@ interface CanvasRendererProps {
 	viewBoxString: string;
 	cursor: string;
 	layerComponents: React.ComponentType[];
+	pluginApi: PluginAPI;
 	onMouseDown: (e: React.MouseEvent) => void;
 	onMouseMove: (e: React.MouseEvent) => void;
 	onMouseUp: (e: React.MouseEvent) => void;
@@ -25,6 +28,7 @@ export const CanvasRenderer = forwardRef<
 			viewBoxString,
 			cursor,
 			layerComponents,
+			pluginApi,
 			onMouseDown,
 			onMouseMove,
 			onMouseUp,
@@ -52,6 +56,10 @@ export const CanvasRenderer = forwardRef<
 				onWheel={onWheel}
 			>
 				<Grid />
+
+				{/* Built-in elements layer - renders all registered element types */}
+				<ElementsLayer pluginApi={pluginApi} />
+
 				{/* Render plugin layers */}
 				{layerComponents.map((LayerComponent, index) => (
 					<LayerComponent key={`layer-${LayerComponent.name || index}`} />
