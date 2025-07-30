@@ -12,7 +12,7 @@ export class DatabaseService {
 	private db: Low<DatabaseSchema>;
 	private readonly dbPath: string;
 
-	constructor(dbPath: string = "./data/db.json") {
+	constructor(dbPath: string = "./data/spaces.json") {
 		this.dbPath = dbPath;
 		this.db = new Low(new JSONFile<DatabaseSchema>(this.dbPath), {
 			spaces: [],

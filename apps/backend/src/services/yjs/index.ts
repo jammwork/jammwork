@@ -32,15 +32,29 @@ export class YjsService {
 		this.startHealthCheck();
 	}
 
+	async initialize(): Promise<void> {
+		await this.documentManager.loadAllPersistedSpaces();
+		logger.info("YjsService initialized with persisted spaces");
+	}
+
 	private setupWebSocketServer(): void {
-		this.wss.on("connection", (ws, request) => {
+		this.wss.on("connection", async (ws, request) => {
 			const url = new URL(request.url || "/", `http://${request.headers.host}`);
 			const spaceName = url.pathname.slice(1) || "default-canvas";
 			const userId = url.searchParams.get("userId") || undefined;
 
 			logger.info("Client connected", { spaceName, userId });
 
-			this.wsHandler.handleConnection(ws, spaceName, userId);
+			try {
+				await this.wsHandler.handleConnection(ws, spaceName, userId);
+			} catch (error) {
+				logger.error("Failed to handle WebSocket connection", {
+					error: error instanceof Error ? error.message : String(error),
+					spaceName,
+					userId,
+				});
+				ws.close(1011, "Internal server error");
+			}
 		});
 
 		this.wss.on("error", (error) => {
@@ -74,12 +88,15 @@ export class YjsService {
 		};
 	}
 
-	close(): Promise<void> {
-		return new Promise((resolve) => {
+	async close(): Promise<void> {
+		return new Promise(async (resolve) => {
 			if (this.pingInterval) {
 				clearInterval(this.pingInterval);
 				this.pingInterval = null;
 			}
+
+			// Persist all spaces before closing
+			await this.documentManager.cleanup();
 
 			this.wss.close(() => {
 				logger.info("Yjs WebSocket server closed");

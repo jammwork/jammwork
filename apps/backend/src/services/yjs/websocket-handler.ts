@@ -13,12 +13,12 @@ const messageAwareness = 1;
 export class WebSocketHandler {
 	constructor(private documentManager: DocumentManager) {}
 
-	handleConnection(
+	async handleConnection(
 		ws: WebSocket,
 		spaceName: string,
 		userId?: string,
-	): YjsConnection {
-		const space = this.documentManager.getOrCreateSpace(spaceName);
+	): Promise<YjsConnection> {
+		const space = await this.documentManager.getOrCreateSpace(spaceName);
 
 		const connection: YjsConnection = {
 			ws,
@@ -29,7 +29,7 @@ export class WebSocketHandler {
 			isAlive: true,
 		};
 
-		this.documentManager.addConnection(spaceName, connection);
+		await this.documentManager.addConnection(spaceName, connection);
 		this.setupConnectionHandlers(connection);
 		this.sendSyncStep1(connection);
 

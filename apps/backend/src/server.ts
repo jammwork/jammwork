@@ -39,6 +39,7 @@ export class Server {
 
 			// Start Yjs WebSocket service with HTTP server
 			this.yjsService = new YjsService(this.httpServer);
+			await this.yjsService.initialize();
 
 			// Add stats endpoint with access to YjsService
 			app.get("/api/stats", (c) => {

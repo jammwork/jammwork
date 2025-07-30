@@ -1,3 +1,5 @@
+import { promises as fs } from "node:fs";
+import { join } from "node:path";
 import * as encoding from "lib0/encoding";
 import { Awareness, encodeAwarenessUpdate } from "y-protocols/awareness";
 import * as syncProtocol from "y-protocols/sync";
@@ -12,10 +14,21 @@ const messageAwareness = 1;
 export class DocumentManager {
 	private spaces = new Map<string, YjsSpace>();
 	private connections = new Set<YjsConnection>();
+	private readonly dataDir = "./data/spaces";
 
-	createSpace(spaceName: string): YjsSpace {
+	constructor() {
+		this.ensureDataDirectory();
+	}
+
+	async createSpace(spaceName: string): Promise<YjsSpace> {
 		if (this.spaces.has(spaceName)) {
-			return this.spaces.get(spaceName)!;
+			return this.spaces.get(spaceName) as YjsSpace;
+		}
+
+		// Try to load from persisted data first
+		const loaded = await this.loadSpace(spaceName);
+		if (loaded) {
+			return this.spaces.get(spaceName) as YjsSpace;
 		}
 
 		if (this.spaces.size >= serverConfig.yjs.maxSpaces) {
@@ -46,7 +59,7 @@ export class DocumentManager {
 		});
 
 		this.spaces.set(spaceName, space);
-		logger.info(`Created space: ${spaceName}`);
+		logger.info(`Created new space: ${spaceName}`);
 
 		return space;
 	}
@@ -55,12 +68,15 @@ export class DocumentManager {
 		return this.spaces.get(spaceName);
 	}
 
-	getOrCreateSpace(spaceName: string): YjsSpace {
-		return this.getSpace(spaceName) || this.createSpace(spaceName);
+	async getOrCreateSpace(spaceName: string): Promise<YjsSpace> {
+		return this.getSpace(spaceName) || (await this.createSpace(spaceName));
 	}
 
-	addConnection(spaceName: string, connection: YjsConnection): void {
-		const space = this.getOrCreateSpace(spaceName);
+	async addConnection(
+		spaceName: string,
+		connection: YjsConnection,
+	): Promise<void> {
+		const space = await this.getOrCreateSpace(spaceName);
 		space.connections.add(connection);
 		this.connections.add(connection);
 
@@ -178,5 +194,125 @@ export class DocumentManager {
 				lastActivity: space.lastActivity,
 			})),
 		};
+	}
+
+	private async ensureDataDirectory(): Promise<void> {
+		try {
+			await fs.mkdir(this.dataDir, { recursive: true });
+		} catch (error) {
+			logger.error("Failed to create data directory", { error });
+		}
+	}
+
+	private getSpaceFilePath(spaceName: string): string {
+		return join(this.dataDir, `${spaceName}.json`);
+	}
+
+	async persistSpace(spaceName: string): Promise<void> {
+		const space = this.spaces.get(spaceName);
+		if (!space) {
+			logger.warn(`Attempted to persist non-existent space: ${spaceName}`);
+			return;
+		}
+
+		try {
+			const update = Y.encodeStateAsUpdate(space.doc);
+			const data = {
+				spaceName,
+				update: Array.from(update),
+				lastActivity: space.lastActivity.toISOString(),
+				persistedAt: new Date().toISOString(),
+			};
+
+			const filePath = this.getSpaceFilePath(spaceName);
+			await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+			logger.info(`Persisted space: ${spaceName}`);
+		} catch (error) {
+			logger.error(`Failed to persist space: ${spaceName}`, { error });
+		}
+	}
+
+	async loadSpace(spaceName: string): Promise<boolean> {
+		try {
+			const filePath = this.getSpaceFilePath(spaceName);
+			const fileContent = await fs.readFile(filePath, "utf-8");
+			const data = JSON.parse(fileContent);
+
+			if (this.spaces.has(spaceName)) {
+				logger.warn(`Space ${spaceName} already exists, skipping load`);
+				return false;
+			}
+
+			const doc = new Y.Doc();
+			const awareness = new Awareness(doc);
+
+			const update = new Uint8Array(data.update);
+			Y.applyUpdate(doc, update);
+
+			const space: YjsSpace = {
+				name: spaceName,
+				doc,
+				awareness,
+				connections: new Set(),
+				lastActivity: new Date(data.lastActivity),
+			};
+
+			doc.on("update", (update: Uint8Array, origin: any) => {
+				space.lastActivity = new Date();
+				this.broadcastUpdate(space, update, origin);
+			});
+
+			awareness.on("change", ({ added, updated, removed }: any) => {
+				space.lastActivity = new Date();
+				this.broadcastAwareness(space, { added, updated, removed });
+			});
+
+			this.spaces.set(spaceName, space);
+			logger.info(
+				`Loaded space: ${spaceName} (persisted at: ${data.persistedAt})`,
+			);
+			return true;
+		} catch (error) {
+			if ((error as any).code === "ENOENT") {
+				logger.debug(`No persisted data found for space: ${spaceName}`);
+			} else {
+				logger.error(`Failed to load space: ${spaceName}`, { error });
+			}
+			return false;
+		}
+	}
+
+	async persistAllSpaces(): Promise<void> {
+		logger.info("Persisting all active spaces...");
+		const persistPromises = Array.from(this.spaces.keys()).map((spaceName) =>
+			this.persistSpace(spaceName),
+		);
+		await Promise.all(persistPromises);
+		logger.info(`Persisted ${persistPromises.length} spaces`);
+	}
+
+	async loadAllPersistedSpaces(): Promise<void> {
+		try {
+			const files = await fs.readdir(this.dataDir);
+			const jsonFiles = files.filter((file) => file.endsWith(".json"));
+
+			logger.info(`Found ${jsonFiles.length} persisted space files`);
+
+			const loadPromises = jsonFiles.map((file) => {
+				const spaceName = file.replace(".json", "");
+				return this.loadSpace(spaceName);
+			});
+
+			const results = await Promise.all(loadPromises);
+			const loadedCount = results.filter(Boolean).length;
+			logger.info(`Loaded ${loadedCount} persisted spaces`);
+		} catch (error) {
+			logger.error("Failed to load persisted spaces", { error });
+		}
+	}
+
+	async cleanup(): Promise<void> {
+		await this.persistAllSpaces();
+		logger.info("DocumentManager cleanup completed");
 	}
 }
