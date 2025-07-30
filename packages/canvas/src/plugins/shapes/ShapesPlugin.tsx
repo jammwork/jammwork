@@ -3,9 +3,6 @@ import { Square } from "lucide-react";
 import { CirclePreview } from "./components/CirclePreview";
 import { RectanglePreview } from "./components/RectanglePreview";
 import { TrianglePreview } from "./components/TrianglePreview";
-import { createCircleLayer } from "./layers/CircleLayer";
-import { createRectangleLayer } from "./layers/RectangleLayer";
-import { createTriangleLayer } from "./layers/TriangleLayer";
 import { CircleRenderer } from "./renderers/CircleRenderer";
 import { RectangleRenderer } from "./renderers/RectangleRenderer";
 import { TriangleRenderer } from "./renderers/TriangleRenderer";
@@ -99,10 +96,8 @@ export const ShapesPlugin: Plugin = {
 			<TrianglePreview accentColor={api.getAccentColor()} />
 		));
 
-		// Register shape layer components
-		api.registerLayerComponent(createRectangleLayer(api));
-		api.registerLayerComponent(createCircleLayer(api));
-		api.registerLayerComponent(createTriangleLayer(api));
+		// NOTE: No longer need to manually register layer components for rendering shape elements.
+		// The built-in ElementsLayer automatically renders all registered element types.
 	},
 
 	deactivate: async () => {

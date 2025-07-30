@@ -226,21 +226,8 @@ export const DrawingPlugin: Plugin = {
 				<DrawingLayer accentColor={api.getAccentColor()} />
 			));
 
-			// Register a layer component to render path elements
-			api.registerLayerComponent(() => {
-				const elements = api.getElements();
-				const pathElements = Array.from(elements.values()).filter(
-					(element): element is Element => element.type === "drawing-path",
-				);
-
-				return (
-					<g className="path-elements-layer">
-						{pathElements.map((element) => (
-							<PathElementRenderer key={element.id} element={element} />
-						))}
-					</g>
-				);
-			});
+			// NOTE: No longer need to manually register layer component for rendering path elements.
+			// The built-in ElementsLayer automatically renders all registered element types.
 		} catch (error) {
 			console.error("Error activating drawing plugin:", error);
 		}
