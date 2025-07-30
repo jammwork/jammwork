@@ -85,6 +85,7 @@ export class PluginManager {
 			registerContextMenuItems: this.api.registerContextMenuItems.bind(
 				this.api,
 			),
+			getContextMenuItems: this.api.getContextMenuItems.bind(this.api),
 			registerLayerComponent: this.api.registerLayerComponent.bind(this.api),
 			registerMenuItem: this.api.registerMenuItem.bind(this.api),
 

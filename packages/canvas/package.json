@@ -1,28 +1,28 @@
 {
-  "name": "@jammwork/canvas",
-  "version": "0.0.2",
-  "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    "./package.json": "./package.json",
-    ".": {
-      "development": "./src/index.ts",
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
-    }
-  },
-  "dependencies": {
-    "@ctrl/tinycolor": "^4.1.0",
-    "@jammwork/api": "workspace:*",
-    "@jammwork/ui": "workspace:*",
-    "lucide-react": "^0.525.0",
-    "mitt": "^3.0.1",
-    "y-protocols": "^1.0.6",
-    "y-websocket": "^3.0.0",
-    "yjs": "^13.6.27",
-    "zustand": "^5.0.1"
-  }
+	"name": "@jammwork/canvas",
+	"version": "0.0.2",
+	"type": "module",
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		"./package.json": "./package.json",
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		}
+	},
+	"dependencies": {
+		"@ctrl/tinycolor": "^4.1.0",
+		"@jammwork/api": "workspace:*",
+		"@jammwork/ui": "workspace:*",
+		"lucide-react": "^0.525.0",
+		"mitt": "^3.0.1",
+		"y-protocols": "^1.0.6",
+		"y-websocket": "^3.0.0",
+		"yjs": "^13.6.27",
+		"zustand": "^5.0.1"
+	}
 }
