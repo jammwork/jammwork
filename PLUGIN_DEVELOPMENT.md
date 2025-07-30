@@ -20,10 +20,20 @@ The plugin system allows you to extend the canvas with custom tools, UI componen
 
 ### 1. Plugin Structure
 
-Create a new directory in `src/plugins/your-plugin-name/`:
+Run the following command to create a new plugin:
 
+```bash
+nx g @jammwork/tools:plugin
 ```
-src/plugins/your-plugin-name/
+
+Enter the name of the plugin you want to create.
+
+This will create a new plugin in the `packages/plugins/shape-tool` directory.
+
+
+Here is a sample structure of a plugin:
+
+packages/plugins/your-plugin/
 ├── index.ts              # Main plugin export
 ├── YourPlugin.tsx        # Plugin definition
 ├── tools/               # Tool definitions (for complex plugins)

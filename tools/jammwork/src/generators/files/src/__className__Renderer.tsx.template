@@ -1,0 +1,33 @@
+import type { CanvasElement } from "@jammwork/api";
+import React from "react";
+
+interface <%= className %>RendererProps {
+	element: CanvasElement;
+}
+
+export const <%= className %>Renderer: React.FC<<%= className %>RendererProps> = React.memo(
+	({ element }) => {
+		return (
+			<div
+				style={{
+					position: "absolute",
+					left: element.x,
+					top: element.y,
+					width: element.width,
+					height: element.height,
+					border: "2px solid #0066cc",
+					borderRadius: "8px",
+					backgroundColor: "rgba(0, 102, 204, 0.1)",
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center",
+					fontSize: "14px",
+					color: "#0066cc",
+					fontWeight: "bold",
+				}}
+			>
+				<%= displayName %>
+			</div>
+		);
+	},
+);

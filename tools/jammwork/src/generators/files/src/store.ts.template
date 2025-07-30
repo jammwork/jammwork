@@ -1,0 +1,15 @@
+import { create } from "zustand";
+
+interface <%= className %>State {
+	// Add state properties here
+	isActive: boolean;
+	
+	// Add actions here
+	setActive: (active: boolean) => void;
+}
+
+export const use<%= className %>Store = create<<%= className %>State>((set) => ({
+	isActive: false,
+	
+	setActive: (active) => set({ isActive: active }),
+}));

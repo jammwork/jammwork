@@ -1,0 +1,56 @@
+{
+	"name": "@jammwork/tools",
+	"version": "0.0.1",
+	"private": true,
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		"./package.json": "./package.json",
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		}
+	},
+	"nx": {
+		"targets": {
+			"build": {
+				"executor": "@nx/js:tsc",
+				"outputs": [
+					"{options.outputPath}"
+				],
+				"options": {
+					"outputPath": "tools/jammwork/dist",
+					"main": "tools/jammwork/src/index.ts",
+					"tsConfig": "tools/jammwork/tsconfig.lib.json",
+					"rootDir": "tools/jammwork/src",
+					"generatePackageJson": false,
+					"assets": [
+						{
+							"input": "./tools/jammwork/src",
+							"glob": "**/!(*.ts)",
+							"output": "."
+						},
+						{
+							"input": "./tools/jammwork/src",
+							"glob": "**/*.d.ts",
+							"output": "."
+						}
+					]
+				}
+			}
+		}
+	},
+	"dependencies": {
+		"@nx/devkit": "21.3.7",
+		"tslib": "^2.3.0"
+	},
+	"generators": "./generators.json",
+	"files": [
+		"dist",
+		"!**/*.tsbuildinfo",
+		"generators.json"
+	]
+}

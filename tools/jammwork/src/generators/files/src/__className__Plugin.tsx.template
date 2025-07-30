@@ -1,0 +1,61 @@
+import type { Disposable, Plugin, PluginAPI } from "@jammwork/api";
+import { <%= icon %> } from "lucide-react";
+import { <%= className %>Renderer } from "./<%= className %>Renderer";
+
+let disposables: Disposable[] = [];
+
+export const <%= className %>Plugin: Plugin = {
+	id: "<%= name %>",
+	name: "<%= displayName %>",
+	version: "1.0.0",
+	description: "<%= description %>",
+	author: "<%= author %>",
+
+	activate: async (api: PluginAPI) => {
+		// Register element type
+		const elementDisposable = api.registerElementType("<%= name %>", {
+			render: (element) => <<%= className %>Renderer element={element} />,
+			getBounds: (element) => ({
+				x: element.x,
+				y: element.y,
+				width: element.width,
+				height: element.height,
+			}),
+		});
+
+		// Register tool
+		const toolDisposable = api.registerTool({
+			id: "<%= name %>",
+			name: "<%= displayName %>",
+			icon: <<%= icon %> size={16} />,
+			cursor: "crosshair",
+			onMouseDown: (event) => {
+				const canvasPos = api.screenToCanvas({
+					x: event.clientX,
+					y: event.clientY,
+				});
+				
+				// Create element at click position
+				const element = {
+					type: "<%= name %>",
+					x: canvasPos.x - 50,
+					y: canvasPos.y - 50,
+					width: 100,
+					height: 100,
+					properties: {
+						// Add custom properties here
+					},
+				};
+
+				api.createElement(element);
+			},
+		});
+
+		disposables.push(elementDisposable, toolDisposable);
+	},
+
+	deactivate: async () => {
+		disposables.forEach((disposable) => disposable.dispose());
+		disposables = [];
+	},
+};

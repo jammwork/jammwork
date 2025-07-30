@@ -17,6 +17,9 @@
 		},
 		{
 			"path": "./packages/plugins/screenshare"
+		},
+		{
+			"path": "./tools/jammwork"
 		}
 	]
 }

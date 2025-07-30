@@ -68,18 +68,18 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({
 		},
 		...(elements.size > 0
 			? [
-				{
-					id: "separator-default",
-					separator: true,
-				} as ContextMenuItem,
-				{
-					id: "clear-canvas",
-					label: "Clear Canvas",
-					icon: <TrashIcon />,
-					shortcut: "Ctrl+Shift+X",
-					onClick: handleClearCanvas,
-				} as ContextMenuItem,
-			]
+					{
+						id: "separator-default",
+						separator: true,
+					} as ContextMenuItem,
+					{
+						id: "clear-canvas",
+						label: "Clear Canvas",
+						icon: <TrashIcon />,
+						shortcut: "Ctrl+Shift+X",
+						onClick: handleClearCanvas,
+					} as ContextMenuItem,
+				]
 			: []),
 	];
 
