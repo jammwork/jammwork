@@ -316,8 +316,18 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 			const element = state.elements.get(id);
 			if (!element) return state;
 
+			// Deep merge properties instead of shallow merge
+			const updatedElement = {
+				...element,
+				...updates,
+				properties: {
+					...element.properties,
+					...updates.properties,
+				},
+			};
+
 			const newElements = new Map(state.elements);
-			newElements.set(id, { ...element, ...updates });
+			newElements.set(id, updatedElement);
 			return { elements: newElements };
 		});
 

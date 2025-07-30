@@ -252,15 +252,24 @@ export class PluginAPIImpl implements PluginAPI {
 			throw new Error(`Element with id "${id}" not found`);
 		}
 
+		// Update element in store
 		state.updateElement(id, updates);
 
-		const updatedElement = state.elements.get(id);
+		// Get the updated element from fresh state
+		const freshState = useCanvasStore.getState();
+		const updatedElement = freshState.elements.get(id);
+
 		if (updatedElement) {
+			// Emit the updated event for sync with Yjs
 			this.emit("element:updated", {
 				id,
 				element: updatedElement,
 				changes: updates,
 			});
+		} else {
+			console.error(
+				`Failed to get updated element with id "${id}" after update`,
+			);
 		}
 	}
 

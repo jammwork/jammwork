@@ -144,6 +144,7 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 					viewBoxString={getViewBoxString()}
 					cursor={getCursor}
 					layerComponents={allLayerComponents}
+					pluginApi={api}
 					onMouseDown={handleMouseDown}
 					onMouseMove={handleMouseMove}
 					onMouseUp={handleMouseUp}

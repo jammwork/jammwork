@@ -145,11 +145,12 @@ export const usePluginSystem = ({
 						JSON.stringify(localElement) !== JSON.stringify(remoteElement)
 					) {
 						if (localElement) {
-							pluginSystem.api.updateElement(id, remoteElement);
+							// Instead of replacing the entire element, just replace it directly in the store
+							// This avoids triggering another update event that could cause loops
+							pluginSystem.api.addElementWithId(remoteElement);
 						} else {
 							// Use addElementWithId to preserve the original ID
-							// biome-ignore lint/suspicious/noExplicitAny: internal API method
-							(pluginSystem.api as any).addElementWithId(remoteElement);
+							pluginSystem.api.addElementWithId(remoteElement);
 						}
 					}
 				}

@@ -90,6 +90,9 @@ export class PluginManager {
 			registerMenuItem: this.api.registerMenuItem.bind(this.api),
 
 			// Registry access methods
+			getRegisteredElementTypes: this.api.getRegisteredElementTypes.bind(
+				this.api,
+			),
 			getRegisteredTools: this.api.getRegisteredTools.bind(this.api),
 			getLayerComponents: this.api.getLayerComponents.bind(this.api),
 			getElements: this.api.getElements.bind(this.api),
