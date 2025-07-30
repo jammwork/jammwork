@@ -35,6 +35,9 @@
 			"path": "../../packages/ui/tsconfig.lib.json"
 		},
 		{
+			"path": "../../packages/plugins/screenshare/tsconfig.lib.json"
+		},
+		{
 			"path": "../../packages/canvas/tsconfig.lib.json"
 		}
 	]

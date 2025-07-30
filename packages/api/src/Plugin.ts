@@ -118,6 +118,7 @@ export interface PluginAPI {
 
 	// UI extensions
 	registerContextMenuItems(items: ContextMenuItem[]): Disposable;
+	getContextMenuItems(): ContextMenuItem[];
 	registerLayerComponent(component: React.ComponentType): Disposable;
 	registerMenuItem(item: MenuItem): Disposable;
 

@@ -27,6 +27,12 @@ export interface ToolState {
 	isSpacePanning: boolean;
 }
 
+export interface ContextMenuState {
+	isOpen: boolean;
+	position: { x: number; y: number };
+	targetElementId: string | null;
+}
+
 export interface SelectionState {
 	selectedElements: string[];
 	hoveredElement: string | null;
@@ -65,6 +71,7 @@ interface CanvasState {
 	dragState: DragState;
 	toolState: ToolState;
 	selectionState: SelectionState;
+	contextMenuState: ContextMenuState;
 	elements: Map<string, Element>;
 	dimensions: {
 		width: number;
@@ -121,6 +128,13 @@ interface CanvasActions {
 	updateResize: (position: Position, shiftKey?: boolean) => void;
 	endResize: () => void;
 
+	// Context menu management
+	openContextMenu: (
+		position: Position,
+		targetElementId?: string | null,
+	) => void;
+	closeContextMenu: () => void;
+
 	// History management
 	saveToHistory: () => void;
 	undo: () => void;
@@ -156,6 +170,11 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 		selectionBox: null,
 		draggedElement: null,
 		resizeHandle: null,
+	},
+	contextMenuState: {
+		isOpen: false,
+		position: { x: 0, y: 0 },
+		targetElementId: null,
 	},
 	elements: new Map(),
 	history: {
@@ -782,6 +801,25 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 				resizeHandle: null,
 			},
 		})),
+
+	// Context menu management
+	openContextMenu: (position, targetElementId) =>
+		set({
+			contextMenuState: {
+				isOpen: true,
+				position,
+				targetElementId: targetElementId || null,
+			},
+		}),
+
+	closeContextMenu: () =>
+		set({
+			contextMenuState: {
+				isOpen: false,
+				position: { x: 0, y: 0 },
+				targetElementId: null,
+			},
+		}),
 
 	// History management
 	saveToHistory: () =>

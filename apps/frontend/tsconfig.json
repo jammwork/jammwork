@@ -12,6 +12,9 @@
 			"path": "../../packages/ui"
 		},
 		{
+			"path": "../../packages/plugins/screenshare"
+		},
+		{
 			"path": "../../packages/canvas"
 		},
 		{

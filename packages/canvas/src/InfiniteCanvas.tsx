@@ -1,5 +1,6 @@
 import type { Plugin } from "@jammwork/api";
 import { useEffect, useMemo, useRef } from "react";
+import { CanvasContextMenu } from "./components/CanvasContextMenu";
 import { CanvasOverlay } from "./components/CanvasOverlay";
 import { CanvasRenderer } from "./components/CanvasRenderer";
 import { UserCursorsLayer } from "./components/UserCursorsLayer";
@@ -136,18 +137,20 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 			className="relative w-full h-screen overflow-hidden bg-background"
 			style={containerStyle}
 		>
-			<CanvasRenderer
-				ref={svgRef}
-				dimensions={dimensions}
-				viewBoxString={getViewBoxString()}
-				cursor={getCursor}
-				layerComponents={allLayerComponents}
-				onMouseDown={handleMouseDown}
-				onMouseMove={handleMouseMove}
-				onMouseUp={handleMouseUp}
-				onMouseLeave={handleMouseLeave}
-				onWheel={handleWheel}
-			/>
+			<CanvasContextMenu pluginApi={api} svgRef={svgRef}>
+				<CanvasRenderer
+					ref={svgRef}
+					dimensions={dimensions}
+					viewBoxString={getViewBoxString()}
+					cursor={getCursor}
+					layerComponents={allLayerComponents}
+					onMouseDown={handleMouseDown}
+					onMouseMove={handleMouseMove}
+					onMouseUp={handleMouseUp}
+					onMouseLeave={handleMouseLeave}
+					onWheel={handleWheel}
+				/>
+			</CanvasContextMenu>
 			<CanvasOverlay
 				pluginApi={api}
 				pluginsLoaded={pluginsLoaded}

@@ -179,11 +179,52 @@ export const useCanvasEvents = ({
 		[zoomAt, svgRef],
 	);
 
+	const handleContextMenu = useCallback(
+		(e: React.MouseEvent) => {
+			e.preventDefault();
+			e.stopPropagation();
+
+			const { openContextMenu } = useCanvasStore.getState();
+			const rect = svgRef.current?.getBoundingClientRect();
+			if (!rect) return;
+
+			const screenPosition = {
+				x: e.clientX - rect.left,
+				y: e.clientY - rect.top,
+			};
+
+			// Check if we're right-clicking on an element
+			let targetElementId: string | null = null;
+			if (pluginApi) {
+				const canvasPosition = pluginApi.screenToCanvas(screenPosition);
+				const elements = pluginApi.getElements();
+
+				// Find the topmost element at this position
+				for (const [id, element] of elements) {
+					// Basic hit test - check if point is within element bounds
+					if (
+						canvasPosition.x >= element.x &&
+						canvasPosition.x <= element.x + element.width &&
+						canvasPosition.y >= element.y &&
+						canvasPosition.y <= element.y + element.height
+					) {
+						targetElementId = id;
+					}
+				}
+			}
+
+			// Open context menu at the mouse position
+			openContextMenu(screenPosition, targetElementId);
+		},
+		[pluginApi, svgRef],
+	);
+
 	return {
 		handleMouseDown,
 		handleMouseMove,
 		handleMouseUp,
 		handleMouseLeave,
 		handleWheel,
+		handleContextMenu,
 	};
 };
