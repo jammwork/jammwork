@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  jammwork:
+    image: ghcr.io/jammwork/jammwork:latest
+    ports:
+      - "6776:3000"
+    volumes:
+      - jammwork_data:/app/data
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+
+volumes:
+  jammwork_data:
+    driver: local
