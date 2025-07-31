@@ -51,8 +51,9 @@ COPY --from=builder /app/apps/backend/dist ./dist
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S backend -u 1001
 
-# Change ownership of the app directory
-RUN chown -R backend:nodejs /app
+# Create data directory and change ownership
+RUN mkdir -p /app/data && \
+    chown -R backend:nodejs /app
 
 # Switch to non-root user
 USER backend
