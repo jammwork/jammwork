@@ -31,8 +31,8 @@ function Toolbar({ pluginApi }: ToolbarProps) {
 		? Array.from(pluginApi.getMainTools().values())
 		: [];
 
-	// Combine tools for main toolbar
-	const mainToolbarTools = [...coreTools, ...mainPluginTools];
+	// Combine tools for main toolbar (1 is a separator)
+	const mainToolbarTools = [...coreTools, 1, ...mainPluginTools];
 
 	// Find secondary tools for the active tool
 	let secondaryTools: ToolDefinition[] = [];
@@ -82,6 +82,9 @@ function Toolbar({ pluginApi }: ToolbarProps) {
 			{/* Main toolbar */}
 			<div className="p-2 bg-secondary rounded-lg shadow-lg space-x-0.5 flex items-center pointer-events-auto">
 				{mainToolbarTools.map((tool) => {
+					if (typeof tool === "number") {
+						return <div key={tool} className="w-[1px] mx-2 h-6 bg-muted-foreground/30 rounded-full" />;
+					}
 					// Check if this tool should be highlighted
 					let isHighlighted = toolState.activeTool === tool.id;
 
