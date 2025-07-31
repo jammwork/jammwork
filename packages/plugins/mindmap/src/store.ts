@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { Element } from "@jammwork/api";
+import type * as Y from "yjs";
 
 interface Connection {
 	id: string;
@@ -22,6 +23,8 @@ interface MindmapState {
 	draggedNodeId: string | null;
 	nearbyNode: { nodeId: string; side: "left" | "right" } | null;
 	isDragging: boolean;
+	yjsDoc: Y.Doc | null;
+	yjsListeners: (() => void)[];
 
 	setActive: (active: boolean) => void;
 	setDraggedNode: (nodeId: string | null) => void;
@@ -29,6 +32,10 @@ interface MindmapState {
 		nearby: { nodeId: string; side: "left" | "right" } | null,
 	) => void;
 	setIsDragging: (dragging: boolean) => void;
+	setYjsDoc: (doc: Y.Doc | null) => void;
+	initializeFromYjs: () => void;
+	setupYjsListeners: () => void;
+	cleanupYjsListeners: () => void;
 	addConnection: (
 		parentId: string,
 		childId: string,
@@ -78,11 +85,146 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
 	draggedNodeId: null,
 	nearbyNode: null,
 	isDragging: false,
+	yjsDoc: null,
+	yjsListeners: [],
 
 	setActive: (active) => set({ isActive: active }),
 	setDraggedNode: (nodeId) => set({ draggedNodeId: nodeId }),
 	setNearbyNode: (nearby) => set({ nearbyNode: nearby }),
 	setIsDragging: (dragging) => set({ isDragging: dragging }),
+
+	setYjsDoc: (doc) => {
+		// Clean up existing listeners first
+		get().cleanupYjsListeners();
+
+		set({ yjsDoc: doc });
+		if (doc) {
+			get().initializeFromYjs();
+			get().setupYjsListeners();
+		}
+	},
+
+	setupYjsListeners: () => {
+		const state = get();
+		if (!state.yjsDoc) return;
+
+		const connectionsMap = state.yjsDoc.getMap("mindmap-connections");
+		const hierarchyMap = state.yjsDoc.getMap("mindmap-hierarchy");
+
+		// Listen for connection changes
+		const connectionsListener = (event: any) => {
+			console.log("🔄 Connections changed in Yjs:", event);
+
+			// Reload all connections from Yjs
+			const connections: Connection[] = [];
+			connectionsMap.forEach((connection: any, id: string) => {
+				connections.push({
+					id,
+					parentId: connection.parentId,
+					childId: connection.childId,
+					side: connection.side,
+				});
+			});
+
+			console.log(`📡 Real-time update: ${connections.length} connections`);
+			set({ connections });
+		};
+
+		// Listen for hierarchy changes
+		const hierarchyListener = (event: any) => {
+			console.log("🔄 Hierarchy changed in Yjs:", event);
+
+			// Reload all hierarchy from Yjs
+			const nodeHierarchy = new Map<string, NodeHierarchy>();
+			hierarchyMap.forEach((hierarchy: any, nodeId: string) => {
+				nodeHierarchy.set(nodeId, {
+					nodeId,
+					parentId: hierarchy.parentId,
+					children: hierarchy.children || [],
+					side: hierarchy.side,
+				});
+			});
+
+			console.log(
+				`📡 Real-time update: ${nodeHierarchy.size} hierarchy entries`,
+			);
+			set({ nodeHierarchy });
+		};
+
+		connectionsMap.observe(connectionsListener);
+		hierarchyMap.observe(hierarchyListener);
+
+		// Store cleanup functions
+		const cleanup = [
+			() => connectionsMap.unobserve(connectionsListener),
+			() => hierarchyMap.unobserve(hierarchyListener),
+		];
+
+		set({ yjsListeners: cleanup });
+		console.log("👂 Yjs change listeners set up for real-time sync");
+	},
+
+	cleanupYjsListeners: () => {
+		const state = get();
+		state.yjsListeners.forEach((cleanup) => cleanup());
+		set({ yjsListeners: [] });
+		console.log("🧹 Cleaned up Yjs listeners");
+	},
+
+	initializeFromYjs: () => {
+		const state = get();
+		console.log("🔄 initializeFromYjs called, yjsDoc:", state.yjsDoc);
+
+		if (!state.yjsDoc) {
+			console.warn("⚠️ No Yjs document available for initialization");
+			return;
+		}
+
+		const connectionsMap = state.yjsDoc.getMap("mindmap-connections");
+		const hierarchyMap = state.yjsDoc.getMap("mindmap-hierarchy");
+
+		console.log("📊 Yjs maps:", {
+			connectionsMapSize: connectionsMap.size,
+			hierarchyMapSize: hierarchyMap.size,
+		});
+
+		// Load connections from Yjs
+		const connections: Connection[] = [];
+		connectionsMap.forEach((connection: any, id: string) => {
+			console.log(`📝 Loading connection ${id}:`, connection);
+			connections.push({
+				id,
+				parentId: connection.parentId,
+				childId: connection.childId,
+				side: connection.side,
+			});
+		});
+
+		// Load hierarchy from Yjs
+		const nodeHierarchy = new Map<string, NodeHierarchy>();
+		hierarchyMap.forEach((hierarchy: any, nodeId: string) => {
+			console.log(`🌳 Loading hierarchy for ${nodeId}:`, hierarchy);
+			nodeHierarchy.set(nodeId, {
+				nodeId,
+				parentId: hierarchy.parentId,
+				children: hierarchy.children || [],
+				side: hierarchy.side,
+			});
+		});
+
+		console.log(
+			`✅ Initialized mindmap from Yjs: ${connections.length} connections, ${nodeHierarchy.size} hierarchy entries`,
+		);
+
+		// Log the actual data being set
+		console.log("📋 Connections being set:", connections);
+		console.log("🗂️ Hierarchy being set:", Array.from(nodeHierarchy.entries()));
+
+		set({
+			connections,
+			nodeHierarchy,
+		});
+	},
 
 	addConnection: (parentId, childId, side, api?: any) => {
 		// Clean up any stale data first
@@ -96,12 +238,32 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
 		);
 
 		if (!existingConnection) {
+			const newConnection = { id: connectionId, parentId, childId, side };
+
 			set((state) => ({
-				connections: [
-					...state.connections,
-					{ id: connectionId, parentId, childId, side },
-				],
+				connections: [...state.connections, newConnection],
 			}));
+
+			// Persist to Yjs
+			const state = get();
+			if (state.yjsDoc) {
+				const connectionsMap = state.yjsDoc.getMap("mindmap-connections");
+				console.log(`💾 Saving connection to Yjs: ${connectionId}`, {
+					parentId,
+					childId,
+					side,
+				});
+				connectionsMap.set(connectionId, {
+					parentId,
+					childId,
+					side,
+				});
+				console.log(
+					`✅ Connection saved. Total connections in Yjs: ${connectionsMap.size}`,
+				);
+			} else {
+				console.warn("⚠️ No Yjs document available for saving connection");
+			}
 		}
 
 		// Update hierarchy
@@ -128,6 +290,13 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
 		set((state) => ({
 			connections: state.connections.filter((conn) => conn.id !== connectionId),
 		}));
+
+		// Remove from Yjs
+		const state = get();
+		if (state.yjsDoc) {
+			const connectionsMap = state.yjsDoc.getMap("mindmap-connections");
+			connectionsMap.delete(connectionId);
+		}
 	},
 
 	updateNodeHierarchy: (nodeId, parentId, side) => {
@@ -167,6 +336,39 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
 		}
 
 		set({ nodeHierarchy: new Map(hierarchy) });
+
+		// Persist hierarchy to Yjs
+		const state = get();
+		if (state.yjsDoc) {
+			const hierarchyMap = state.yjsDoc.getMap("mindmap-hierarchy");
+
+			// Update the modified node
+			hierarchyMap.set(nodeId, {
+				parentId: updatedNode.parentId,
+				children: updatedNode.children,
+				side: updatedNode.side,
+			});
+
+			// Update the old parent if it exists
+			if (currentNode?.parentId && hierarchy.has(currentNode.parentId)) {
+				const oldParent = hierarchy.get(currentNode.parentId)!;
+				hierarchyMap.set(currentNode.parentId, {
+					parentId: oldParent.parentId,
+					children: oldParent.children,
+					side: oldParent.side,
+				});
+			}
+
+			// Update the new parent if it exists
+			if (parentId && hierarchy.has(parentId)) {
+				const newParent = hierarchy.get(parentId)!;
+				hierarchyMap.set(parentId, {
+					parentId: newParent.parentId,
+					children: newParent.children,
+					side: newParent.side,
+				});
+			}
+		}
 	},
 
 	getConnectionsForNode: (nodeId) => {
@@ -747,11 +949,19 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
 		if (hierarchy?.parentId) {
 			console.log(`✂️ Severing connection: ${hierarchy.parentId} -> ${nodeId}`);
 
+			const connectionId = `${hierarchy.parentId}-${nodeId}`;
+
 			// Remove the connection
 			const connections = state.connections.filter(
 				(conn) =>
 					!(conn.parentId === hierarchy.parentId && conn.childId === nodeId),
 			);
+
+			// Remove from Yjs
+			if (state.yjsDoc) {
+				const connectionsMap = state.yjsDoc.getMap("mindmap-connections");
+				connectionsMap.delete(connectionId);
+			}
 
 			// Update hierarchy to make this node parentless
 			state.updateNodeHierarchy(nodeId, null, null);
@@ -786,6 +996,13 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
 				!allNodesToDelete.includes(conn.childId),
 		);
 
+		// Get connections to delete from Yjs
+		const connectionsToDelete = state.connections.filter(
+			(conn) =>
+				allNodesToDelete.includes(conn.parentId) ||
+				allNodesToDelete.includes(conn.childId),
+		);
+
 		// Remove all hierarchy entries for these nodes
 		const newHierarchy = new Map(state.nodeHierarchy);
 		allNodesToDelete.forEach((id) => {
@@ -808,6 +1025,31 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
 			connections: newConnections,
 			nodeHierarchy: newHierarchy,
 		});
+
+		// Remove from Yjs
+		if (state.yjsDoc) {
+			const connectionsMap = state.yjsDoc.getMap("mindmap-connections");
+			const hierarchyMap = state.yjsDoc.getMap("mindmap-hierarchy");
+
+			// Remove connections from Yjs
+			connectionsToDelete.forEach((conn) => {
+				connectionsMap.delete(conn.id);
+			});
+
+			// Remove hierarchy entries from Yjs
+			allNodesToDelete.forEach((id) => {
+				hierarchyMap.delete(id);
+			});
+
+			// Update remaining hierarchy entries in Yjs
+			newHierarchy.forEach((hierarchy, nodeId) => {
+				hierarchyMap.set(nodeId, {
+					parentId: hierarchy.parentId,
+					children: hierarchy.children,
+					side: hierarchy.side,
+				});
+			});
+		}
 
 		// Delete the actual elements from the canvas
 		allNodesToDelete.forEach((id) => {

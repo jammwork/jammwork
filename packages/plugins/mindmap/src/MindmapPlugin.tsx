@@ -1,9 +1,9 @@
-import type { Disposable, Plugin, PluginAPI, Element } from "@jammwork/api";
-import { Workflow, Scissors, Trash2 } from "lucide-react";
+import type { Disposable, Element, Plugin, PluginAPI } from "@jammwork/api";
+import { Scissors, Trash2, Workflow } from "lucide-react";
 import type React from "react";
-import { MindmapRenderer } from "./MindmapRenderer";
 import { ConnectionsLayer } from "./ConnectionsLayer";
 import { DragAttachmentHandler } from "./DragAttachmentHandler";
+import { MindmapRenderer } from "./MindmapRenderer";
 import { useMindmapStore } from "./store";
 
 let disposables: Disposable[] = [];
@@ -16,6 +16,22 @@ export const MindmapPlugin: Plugin = {
 	author: "JammWork",
 
 	activate: async (api: PluginAPI) => {
+		// Initialize Yjs document for mindmap persistence
+		console.log("🔌 Mindmap plugin activating, setting up Yjs persistence...");
+		const yjsDocumentManager = api.getYjsDocumentManager();
+		const mindmapDoc = yjsDocumentManager.getDocument("mindmap");
+		console.log("📄 Got mindmap Yjs document:", mindmapDoc);
+
+		// Set the document and initialize from existing data
+		const store = useMindmapStore.getState();
+		store.setYjsDoc(mindmapDoc);
+
+		// Add a small delay to ensure Yjs has synchronized
+		setTimeout(() => {
+			console.log("⏰ Attempting to initialize from Yjs after delay...");
+			store.initializeFromYjs();
+		}, 100);
+
 		// Helper function to create connected nodes
 		const createConnectedNode = (
 			parentElement: Element,
@@ -165,11 +181,6 @@ export const MindmapPlugin: Plugin = {
 			}
 		};
 
-		// Listen for element updates using the correct API event
-		const elementUpdateDisposable = api.on(
-			"element:updated" as any,
-			elementUpdateListener,
-		);
 		// Register element type
 		const elementDisposable = api.registerElementType("mindmap", {
 			render: (element) => {
@@ -280,12 +291,16 @@ export const MindmapPlugin: Plugin = {
 			dragDisposable,
 			keyboardDisposable,
 			menuDisposable,
-			elementUpdateDisposable,
 		);
 	},
 
 	deactivate: async () => {
 		disposables.forEach((disposable) => disposable.dispose());
 		disposables = [];
+
+		// Clean up Yjs listeners and document reference
+		const store = useMindmapStore.getState();
+		store.cleanupYjsListeners();
+		store.setYjsDoc(null);
 	},
 };
