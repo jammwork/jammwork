@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { Element } from "@jammwork/api";
 
 interface Connection {
 	id: string;
@@ -60,6 +61,14 @@ interface MindmapState {
 	getRootNodes: () => string[];
 	cleanupDeletedNodes: (api: any) => void;
 	redistributeChildrenWithSpacing: (parentId: string, api: any) => void;
+	moveNodeWithBranch: (
+		nodeId: string,
+		deltaX: number,
+		deltaY: number,
+		api: any,
+	) => void;
+	severNodeConnection: (nodeId: string, api: any) => void;
+	deleteNodeAndDescendants: (nodeId: string, api: any) => void;
 }
 
 export const useMindmapStore = create<MindmapState>((set, get) => ({
@@ -242,8 +251,8 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
 		const reorganizeChildren = (parentNodeId: string) => {
 			const elements = api.getCanvasState().elements;
 			const parentElement = Array.from(elements.values()).find(
-				(el) => el.id === parentNodeId,
-			);
+				(el) => (el as Element).id === parentNodeId,
+			) as Element | undefined;
 
 			if (!parentElement) return;
 
@@ -315,8 +324,8 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
 		if (rootNodes.length === 0) {
 			const elements = api.getCanvasState().elements;
 			const mindmapElements = Array.from(elements.values()).filter(
-				(el) => el.type === "mindmap",
-			);
+				(el) => (el as Element).type === "mindmap",
+			) as Element[];
 
 			console.log(
 				`📍 No connections found, treating all ${mindmapElements.length} mindmap elements as independent`,
@@ -353,8 +362,8 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
 		if (api) {
 			const elements = api.getCanvasState().elements;
 			const parentElement = Array.from(elements.values()).find(
-				(el) => el.id === parentId,
-			);
+				(el) => (el as Element).id === parentId,
+			) as Element | undefined;
 
 			if (parentElement) {
 				// Find all actual children that exist in the canvas and are connected to this parent
@@ -363,20 +372,21 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
 
 				// Check all mindmap elements to find actual children
 				Array.from(elements.values()).forEach((element) => {
-					if (element.type === "mindmap" && element.id !== parentId) {
+					const el = element as Element;
+					if (el.type === "mindmap" && el.id !== parentId) {
 						// Check if this element is connected as a child
 						const connection = state.connections.find(
 							(conn) =>
 								conn.parentId === parentId &&
-								conn.childId === element.id &&
+								conn.childId === el.id &&
 								conn.side === side,
 						);
 						if (connection) {
-							actualChildren.push(element.id);
-							const relativeY = element.y - parentElement.y;
+							actualChildren.push(el.id);
+							const relativeY = el.y - parentElement.y;
 							occupiedPositions.add(relativeY);
 							console.log(
-								`📊 Actual child ${element.id} occupies relative Y: ${relativeY}`,
+								`📊 Actual child ${el.id} occupies relative Y: ${relativeY}`,
 							);
 						}
 					}
@@ -386,15 +396,17 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
 					`🔍 Calculating position for parent ${parentId}, actual children in canvas: ${actualChildren.length}`,
 				);
 
-				// If no actual children exist, check for collisions at the straight-across position
+				// If no actual children exist, position straight across (first child case)
 				if (actualChildren.length === 0) {
 					const targetX = parentElement.x + spacing;
 					const targetY = parentElement.y; // Straight across
 
 					// Check for collisions with other mindmap elements
 					const allMindmapElements = Array.from(elements.values()).filter(
-						(el) => el.type === "mindmap" && el.id !== parentId,
-					);
+						(el) =>
+							(el as Element).type === "mindmap" &&
+							(el as Element).id !== parentId,
+					) as Element[];
 
 					let collisionFreeY = targetY;
 					let attempts = 0;
@@ -436,11 +448,22 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
 
 					const finalOffset = collisionFreeY - parentElement.y;
 					console.log(
-						`📍 No children - positioning with collision avoidance at verticalOffset: ${finalOffset}`,
+						`📍 First child - positioning ${finalOffset === 0 ? "straight across" : "with collision avoidance"} at verticalOffset: ${finalOffset}`,
 					);
 					return {
 						horizontalOffset: spacing,
 						verticalOffset: finalOffset,
+					};
+				}
+
+				// If exactly one child exists, try to keep it straight across
+				if (actualChildren.length === 1) {
+					console.log(
+						`📍 Single child detected - attempting to position straight across from parent`,
+					);
+					return {
+						horizontalOffset: spacing,
+						verticalOffset: 0, // Straight across
 					};
 				}
 
@@ -486,7 +509,7 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
 		const state = get();
 		const elements = api.getCanvasState().elements;
 		const existingElementIds = new Set(
-			Array.from(elements.values()).map((el) => el.id),
+			Array.from(elements.values()).map((el) => (el as Element).id),
 		);
 
 		// Clean up connections for deleted nodes
@@ -535,8 +558,8 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
 		const state = get();
 		const elements = api.getCanvasState().elements;
 		const parentElement = Array.from(elements.values()).find(
-			(el) => el.id === parentId,
-		);
+			(el) => (el as Element).id === parentId,
+		) as Element | undefined;
 
 		if (!parentElement) return;
 
@@ -555,85 +578,123 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
 		// Get all existing mindmap elements to check for collisions
 		const allMindmapElements = Array.from(elements.values()).filter(
 			(el) =>
-				el.type === "mindmap" &&
-				el.id !== parentId &&
-				!children.includes(el.id),
-		);
-
-		// Calculate the total height needed for all children
-		const totalChildrenHeight = (children.length - 1) * verticalSpacing;
-
-		// Try to center the children group around the parent's Y position
-		const startY = parentElement.y - totalChildrenHeight / 2;
+				(el as Element).type === "mindmap" &&
+				(el as Element).id !== parentId &&
+				!children.includes((el as Element).id),
+		) as Element[];
 
 		// Position each child and check for collisions
 		const finalPositions: { [childId: string]: { x: number; y: number } } = {};
 		const targetX = parentElement.x + spacing;
 
-		children.forEach((childId, index) => {
-			let targetY = startY + index * verticalSpacing;
+		// Special case: If there's only one child, try to position it straight across from parent
+		if (children.length === 1) {
+			const childId = children[0];
+			let targetY = parentElement.y; // Start with straight across position
+			let collisionFound = false;
 
-			// Check for collisions with existing elements
-			let collisionFound = true;
-			let attempts = 0;
-			const maxAttempts = 20;
+			// Check for collisions with existing elements at the straight position
+			for (const element of allMindmapElements) {
+				const elementBottom = element.y + element.height + buffer;
+				const elementTop = element.y - buffer;
+				const childBottom = targetY + nodeHeight + buffer;
+				const childTop = targetY - buffer;
 
-			while (collisionFound && attempts < maxAttempts) {
-				collisionFound = false;
-				attempts++;
+				// Check if X ranges overlap (child is in same horizontal area)
+				const xOverlap =
+					targetX < element.x + element.width + buffer &&
+					targetX + 120 + buffer > element.x; // 120 is assumed child width
 
-				// Check collision with other mindmap elements
-				for (const element of allMindmapElements) {
-					const elementBottom = element.y + element.height + buffer;
-					const elementTop = element.y - buffer;
-					const childBottom = targetY + nodeHeight + buffer;
-					const childTop = targetY - buffer;
+				// Check if Y ranges overlap
+				const yOverlap = childTop < elementBottom && childBottom > elementTop;
 
-					// Check if X ranges overlap (child is in same horizontal area)
-					const xOverlap =
-						targetX < element.x + element.width + buffer &&
-						targetX + 120 + buffer > element.x; // 120 is assumed child width
-
-					// Check if Y ranges overlap
-					const yOverlap = childTop < elementBottom && childBottom > elementTop;
-
-					if (xOverlap && yOverlap) {
-						console.log(
-							`⚠️ Collision detected for child ${childId} at Y:${targetY} with element ${element.id} at Y:${element.y}`,
-						);
-						collisionFound = true;
-
-						// Move child below the colliding element
-						targetY = element.y + element.height + buffer;
-						break;
-					}
-				}
-
-				// Check collision with previously positioned children
-				for (const [otherChildId, pos] of Object.entries(finalPositions)) {
-					if (otherChildId !== childId) {
-						const otherBottom = pos.y + nodeHeight + buffer;
-						const otherTop = pos.y - buffer;
-						const childBottom = targetY + nodeHeight + buffer;
-						const childTop = targetY - buffer;
-
-						if (childTop < otherBottom && childBottom > otherTop) {
-							console.log(
-								`⚠️ Collision detected for child ${childId} with sibling ${otherChildId}`,
-							);
-							collisionFound = true;
-							targetY = pos.y + nodeHeight + buffer;
-							break;
-						}
-					}
+				if (xOverlap && yOverlap) {
+					console.log(
+						`⚠️ Collision detected for single child ${childId} at straight position Y:${targetY} with element ${element.id}`,
+					);
+					collisionFound = true;
+					// Move child below the colliding element
+					targetY = Math.max(targetY, element.y + element.height + buffer);
 				}
 			}
 
 			finalPositions[childId] = { x: targetX, y: targetY };
 			console.log(
-				`📍 Final position for child ${childId}: (${targetX}, ${targetY}) after ${attempts} attempts`,
+				`📍 Single child ${childId} positioned at: (${targetX}, ${targetY}) ${collisionFound ? "with collision avoidance" : "straight across"}`,
 			);
-		});
+		} else {
+			// Multiple children: Calculate the total height needed for all children
+			const totalChildrenHeight = (children.length - 1) * verticalSpacing;
+
+			// Try to center the children group around the parent's Y position
+			const startY = parentElement.y - totalChildrenHeight / 2;
+
+			children.forEach((childId, index) => {
+				let targetY = startY + index * verticalSpacing;
+
+				// Check for collisions with existing elements
+				let collisionFound = true;
+				let attempts = 0;
+				const maxAttempts = 20;
+
+				while (collisionFound && attempts < maxAttempts) {
+					collisionFound = false;
+					attempts++;
+
+					// Check collision with other mindmap elements
+					for (const element of allMindmapElements) {
+						const elementBottom = element.y + element.height + buffer;
+						const elementTop = element.y - buffer;
+						const childBottom = targetY + nodeHeight + buffer;
+						const childTop = targetY - buffer;
+
+						// Check if X ranges overlap (child is in same horizontal area)
+						const xOverlap =
+							targetX < element.x + element.width + buffer &&
+							targetX + 120 + buffer > element.x; // 120 is assumed child width
+
+						// Check if Y ranges overlap
+						const yOverlap =
+							childTop < elementBottom && childBottom > elementTop;
+
+						if (xOverlap && yOverlap) {
+							console.log(
+								`⚠️ Collision detected for child ${childId} at Y:${targetY} with element ${element.id} at Y:${element.y}`,
+							);
+							collisionFound = true;
+
+							// Move child below the colliding element
+							targetY = element.y + element.height + buffer;
+							break;
+						}
+					}
+
+					// Check collision with previously positioned children
+					for (const [otherChildId, pos] of Object.entries(finalPositions)) {
+						if (otherChildId !== childId) {
+							const otherBottom = pos.y + nodeHeight + buffer;
+							const otherTop = pos.y - buffer;
+							const childBottom = targetY + nodeHeight + buffer;
+							const childTop = targetY - buffer;
+
+							if (childTop < otherBottom && childBottom > otherTop) {
+								console.log(
+									`⚠️ Collision detected for child ${childId} with sibling ${otherChildId}`,
+								);
+								collisionFound = true;
+								targetY = pos.y + nodeHeight + buffer;
+								break;
+							}
+						}
+					}
+				}
+
+				finalPositions[childId] = { x: targetX, y: targetY };
+				console.log(
+					`📍 Final position for child ${childId}: (${targetX}, ${targetY}) after ${attempts} attempts`,
+				);
+			});
+		}
 
 		// Apply the final positions
 		Object.entries(finalPositions).forEach(([childId, position]) => {
@@ -645,6 +706,121 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
 
 		console.log(
 			`✅ Redistributed ${children.length} children with collision avoidance`,
+		);
+	},
+
+	moveNodeWithBranch: (
+		nodeId: string,
+		deltaX: number,
+		deltaY: number,
+		api: any,
+	) => {
+		const state = get();
+		const elements = api.getCanvasState().elements;
+
+		// Get all descendants of this node
+		const descendants = state.getAllDescendants(nodeId);
+		const allNodesToMove = [nodeId, ...descendants];
+
+		console.log(
+			`🚚 Moving node ${nodeId} with ${descendants.length} descendants by (${deltaX}, ${deltaY})`,
+		);
+
+		// Move all nodes in the branch
+		allNodesToMove.forEach((id) => {
+			const element = Array.from(elements.values()).find(
+				(el) => (el as Element).id === id,
+			) as Element | undefined;
+			if (element) {
+				api.updateElement(id, {
+					x: element.x + deltaX,
+					y: element.y + deltaY,
+				});
+			}
+		});
+	},
+
+	severNodeConnection: (nodeId: string, api: any) => {
+		const state = get();
+		const hierarchy = state.nodeHierarchy.get(nodeId);
+
+		if (hierarchy?.parentId) {
+			console.log(`✂️ Severing connection: ${hierarchy.parentId} -> ${nodeId}`);
+
+			// Remove the connection
+			const connections = state.connections.filter(
+				(conn) =>
+					!(conn.parentId === hierarchy.parentId && conn.childId === nodeId),
+			);
+
+			// Update hierarchy to make this node parentless
+			state.updateNodeHierarchy(nodeId, null, null);
+
+			set({ connections });
+
+			// Reorganize the former parent's subtree
+			if (hierarchy.parentId) {
+				state.reorganizeSubtree(hierarchy.parentId, api);
+			}
+
+			console.log(`✅ Node ${nodeId} is now floating`);
+		}
+	},
+
+	deleteNodeAndDescendants: (nodeId: string, api: any) => {
+		const state = get();
+		console.log(`🗑️ Starting cascading deletion for node: ${nodeId}`);
+
+		// Get all descendants before deletion
+		const descendants = state.getAllDescendants(nodeId);
+		const allNodesToDelete = [nodeId, ...descendants];
+
+		console.log(
+			`🗑️ Deleting ${allNodesToDelete.length} nodes: ${allNodesToDelete.join(", ")}`,
+		);
+
+		// Remove all connections involving these nodes
+		const newConnections = state.connections.filter(
+			(conn) =>
+				!allNodesToDelete.includes(conn.parentId) &&
+				!allNodesToDelete.includes(conn.childId),
+		);
+
+		// Remove all hierarchy entries for these nodes
+		const newHierarchy = new Map(state.nodeHierarchy);
+		allNodesToDelete.forEach((id) => {
+			newHierarchy.delete(id);
+		});
+
+		// Clean up parent references for any remaining nodes
+		newHierarchy.forEach((hierarchy, nodeId) => {
+			if (hierarchy.parentId && allNodesToDelete.includes(hierarchy.parentId)) {
+				hierarchy.parentId = null;
+				hierarchy.side = null;
+			}
+			hierarchy.children = hierarchy.children.filter(
+				(childId) => !allNodesToDelete.includes(childId),
+			);
+		});
+
+		// Update the store
+		set({
+			connections: newConnections,
+			nodeHierarchy: newHierarchy,
+		});
+
+		// Delete the actual elements from the canvas
+		allNodesToDelete.forEach((id) => {
+			try {
+				api.deleteElement(id);
+				console.log(`✅ Deleted element: ${id}`);
+			} catch (error) {
+				console.warn(`⚠️ Failed to delete element ${id}:`, error);
+			}
+		});
+
+		console.log(
+			`✅ Cascading deletion completed. Removed ${allNodesToDelete.length} nodes.`,
 		);
 	},
 }));

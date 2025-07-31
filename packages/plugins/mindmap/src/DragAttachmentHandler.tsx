@@ -1,4 +1,4 @@
-import type { Element, PluginAPI } from "@jammwork/api";
+import type { PluginAPI } from "@jammwork/api";
 import React, { useEffect } from "react";
 import { useMindmapStore } from "./store";
 
@@ -8,14 +8,22 @@ interface DragAttachmentHandlerProps {
 
 export const DragAttachmentHandler: React.FC<DragAttachmentHandlerProps> =
 	React.memo(({ api }) => {
-		const { setIsDragging, setDraggedNode, setNearbyNode, reconnectNode } =
-			useMindmapStore();
+		const {
+			setIsDragging,
+			setDraggedNode,
+			setNearbyNode,
+			reconnectNode,
+			moveNodeWithBranch,
+			severNodeConnection,
+		} = useMindmapStore();
 
 		useEffect(() => {
 			let isMouseDown = false;
 			let dragStartPos: { x: number; y: number } | null = null;
 			let isDragMode = false;
 			let currentDraggedNodeId: string | null = null;
+			let dragMode: "normal" | "sever" | "connect" = "normal";
+			let lastMousePos: { x: number; y: number } | null = null;
 
 			const checkForNearbyNodes = (e: MouseEvent) => {
 				if (!currentDraggedNodeId) return;
@@ -31,14 +39,12 @@ export const DragAttachmentHandler: React.FC<DragAttachmentHandlerProps> =
 				} | null = null;
 
 				Array.from(elements.values()).forEach((element) => {
-					if (
-						element.type === "mindmap" &&
-						element.id !== currentDraggedNodeId
-					) {
+					const el = element as any;
+					if (el.type === "mindmap" && el.id !== currentDraggedNodeId) {
 						// Only check right side connection point
 						const rightPoint = {
-							x: element.x + element.width,
-							y: element.y + element.height / 2,
+							x: el.x + el.width,
+							y: el.y + el.height / 2,
 						};
 
 						const rightDistance = Math.sqrt(
@@ -51,17 +57,22 @@ export const DragAttachmentHandler: React.FC<DragAttachmentHandlerProps> =
 							(!closestNode || rightDistance < closestNode.distance)
 						) {
 							closestNode = {
-								nodeId: element.id,
-								side: "right",
+								nodeId: el.id,
+								side: "right" as const,
 								distance: rightDistance,
 							};
 						}
 					}
 				});
 
-				const newNearbyNode = closestNode
-					? { nodeId: closestNode.nodeId, side: closestNode.side }
-					: null;
+				let newNearbyNode: { nodeId: string; side: "left" | "right" } | null =
+					null;
+				if (closestNode) {
+					newNearbyNode = {
+						nodeId: (closestNode as any).nodeId,
+						side: (closestNode as any).side,
+					};
+				}
 
 				console.log("🎯 Setting nearby node:", newNearbyNode);
 				setNearbyNode(newNearbyNode);
@@ -70,6 +81,13 @@ export const DragAttachmentHandler: React.FC<DragAttachmentHandlerProps> =
 			const handleGlobalMouseDown = (e: MouseEvent) => {
 				console.log("🖱️ Global mouse down triggered");
 				isMouseDown = true;
+
+				// Determine drag mode based on modifiers
+				if (e.altKey) {
+					dragMode = "sever";
+				} else {
+					dragMode = "normal";
+				}
 
 				// Small delay to let selection happen first
 				setTimeout(() => {
@@ -84,13 +102,18 @@ export const DragAttachmentHandler: React.FC<DragAttachmentHandlerProps> =
 						console.log("🔍 Found selected element:", element);
 
 						if (element?.type === "mindmap") {
-							console.log("🖱️ Starting drag for mindmap node:", element.id);
+							console.log(
+								`🖱️ Starting ${dragMode} drag for mindmap node:`,
+								element.id,
+							);
 							dragStartPos = { x: e.clientX, y: e.clientY };
+							lastMousePos = { x: e.clientX, y: e.clientY };
 							currentDraggedNodeId = element.id;
 							setDraggedNode(element.id);
 							console.log("✅ Drag setup complete:", {
 								dragStartPos,
 								currentDraggedNodeId,
+								dragMode,
 							});
 						} else {
 							console.log("❌ Element is not mindmap type:", element?.type);
@@ -105,7 +128,12 @@ export const DragAttachmentHandler: React.FC<DragAttachmentHandlerProps> =
 			};
 
 			const handleGlobalMouseMove = (e: MouseEvent) => {
-				if (!isMouseDown || !dragStartPos || !currentDraggedNodeId) {
+				if (
+					!isMouseDown ||
+					!dragStartPos ||
+					!currentDraggedNodeId ||
+					!lastMousePos
+				) {
 					return;
 				}
 
@@ -117,20 +145,53 @@ export const DragAttachmentHandler: React.FC<DragAttachmentHandlerProps> =
 					deltaY,
 					isDragMode,
 					currentDraggedNodeId,
+					dragMode,
 				});
 
 				// Start drag mode if moved more than 5px
 				if (!isDragMode && (deltaX > 5 || deltaY > 5)) {
-					console.log("🔄 Entering drag mode for:", currentDraggedNodeId);
+					console.log(
+						`🔄 Entering ${dragMode} drag mode for:`,
+						currentDraggedNodeId,
+					);
 					isDragMode = true;
 					setIsDragging(true);
+
+					// If it's sever mode, immediately sever the connection
+					if (dragMode === "sever") {
+						severNodeConnection(currentDraggedNodeId, api);
+					}
 				}
 
-				// Check for nearby nodes during drag
+				// Handle movement during drag
 				if (isDragMode) {
-					console.log("✅ In drag mode, checking for nearby nodes");
+					if (dragMode === "normal" || dragMode === "sever") {
+						// Move the node and its branch
+						const mouseDeltaX = e.clientX - lastMousePos.x;
+						const mouseDeltaY = e.clientY - lastMousePos.y;
+
+						if (Math.abs(mouseDeltaX) > 0 || Math.abs(mouseDeltaY) > 0) {
+							const canvasDelta = api.screenToCanvas({
+								x: mouseDeltaX,
+								y: mouseDeltaY,
+							});
+							const canvasOrigin = api.screenToCanvas({ x: 0, y: 0 });
+
+							moveNodeWithBranch(
+								currentDraggedNodeId,
+								canvasDelta.x - canvasOrigin.x,
+								canvasDelta.y - canvasOrigin.y,
+								api,
+							);
+						}
+					}
+
+					// Always check for nearby nodes for potential reconnection
 					checkForNearbyNodes(e);
 				}
+
+				// Update last mouse position
+				lastMousePos = { x: e.clientX, y: e.clientY };
 			};
 
 			const handleGlobalMouseUp = () => {
@@ -138,13 +199,17 @@ export const DragAttachmentHandler: React.FC<DragAttachmentHandlerProps> =
 					isDragMode,
 					currentDraggedNodeId,
 					isMouseDown,
+					dragMode,
 				});
 
 				if (isDragMode && currentDraggedNodeId) {
 					const currentNearbyNode = useMindmapStore.getState().nearbyNode;
 					console.log("Current nearby node from store:", currentNearbyNode);
 
-					if (currentNearbyNode) {
+					if (
+						currentNearbyNode &&
+						(dragMode === "normal" || dragMode === "sever")
+					) {
 						console.log(
 							`🔗 RECONNECTING ${currentDraggedNodeId} to ${currentNearbyNode.nodeId} on ${currentNearbyNode.side}`,
 						);
@@ -158,7 +223,10 @@ export const DragAttachmentHandler: React.FC<DragAttachmentHandlerProps> =
 							api,
 						);
 					} else {
-						console.log("❌ No nearby node to connect to");
+						console.log(
+							"❌ No nearby node to connect to or not in reconnect mode",
+						);
+						// Reorganization will be handled by the element:updated event listener
 					}
 				}
 
@@ -167,6 +235,8 @@ export const DragAttachmentHandler: React.FC<DragAttachmentHandlerProps> =
 				dragStartPos = null;
 				isDragMode = false;
 				currentDraggedNodeId = null;
+				dragMode = "normal";
+				lastMousePos = null;
 				setIsDragging(false);
 				setDraggedNode(null);
 				setNearbyNode(null);

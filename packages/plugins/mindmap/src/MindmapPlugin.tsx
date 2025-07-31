@@ -1,5 +1,6 @@
 import type { Disposable, Plugin, PluginAPI, Element } from "@jammwork/api";
-import { Workflow } from "lucide-react";
+import { Workflow, Scissors, Trash2 } from "lucide-react";
+import type React from "react";
 import { MindmapRenderer } from "./MindmapRenderer";
 import { ConnectionsLayer } from "./ConnectionsLayer";
 import { DragAttachmentHandler } from "./DragAttachmentHandler";
@@ -117,6 +118,10 @@ export const MindmapPlugin: Plugin = {
 				} else if (e.key === "Tab") {
 					e.preventDefault();
 					createConnectedNode(element, "child");
+				} else if (e.key === "Delete" || e.key === "Backspace") {
+					e.preventDefault();
+					// Use cascading deletion for mindmap nodes
+					useMindmapStore.getState().deleteNodeAndDescendants(nodeId, api);
 				}
 			}
 		};
@@ -128,6 +133,43 @@ export const MindmapPlugin: Plugin = {
 				document.removeEventListener("keydown", handleKeyDown);
 			},
 		};
+
+		// Listen for element updates to trigger reorganization
+		const elementUpdateListener = (elementId: string) => {
+			// Check if the updated element is a mindmap node
+			const elements = api.getCanvasState().elements;
+			const element = Array.from(elements.values()).find(
+				(el) => el.id === elementId,
+			);
+
+			if (element?.type === "mindmap") {
+				console.log(
+					"🔄 Mindmap element updated, triggering reorganization:",
+					elementId,
+				);
+
+				const store = useMindmapStore.getState();
+				if (!store.isDragging) {
+					// Use requestAnimationFrame for smooth updates
+					requestAnimationFrame(() => {
+						const hierarchy = store.nodeHierarchy.get(elementId);
+						if (hierarchy?.parentId) {
+							// Reorganize the parent's subtree
+							store.reorganizeSubtree(hierarchy.parentId, api);
+						} else {
+							// If it's a root node, reorganize the entire mindmap
+							store.reorganizeEntireMindmap(api);
+						}
+					});
+				}
+			}
+		};
+
+		// Listen for element updates using the correct API event
+		const elementUpdateDisposable = api.on(
+			"element:updated" as any,
+			elementUpdateListener,
+		);
 		// Register element type
 		const elementDisposable = api.registerElementType("mindmap", {
 			render: (element) => {
@@ -179,6 +221,55 @@ export const MindmapPlugin: Plugin = {
 			<DragAttachmentHandler api={api} />
 		));
 
+		// Register mindmap control menu
+		const MindmapControls: React.FC = () => {
+			const selectedElements = api.getSelectedElements();
+			const elements = api.getCanvasState().elements;
+			const mindmapNodes = selectedElements.filter((id) => {
+				const element = Array.from(elements.values()).find(
+					(el) => el.id === id,
+				);
+				return element?.type === "mindmap";
+			});
+
+			if (mindmapNodes.length !== 1) return null;
+
+			const nodeId = mindmapNodes[0];
+			const store = useMindmapStore.getState();
+			const hierarchy = store.nodeHierarchy.get(nodeId);
+			const hasParent = !!hierarchy?.parentId;
+
+			return (
+				<div className="flex gap-1">
+					{hasParent && (
+						<button
+							type="button"
+							onClick={() => store.severNodeConnection(nodeId, api)}
+							className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg p-2 shadow-sm"
+							title="Sever connection (Alt+drag also works)"
+						>
+							<Scissors size={16} />
+						</button>
+					)}
+					<button
+						type="button"
+						onClick={() => store.deleteNodeAndDescendants(nodeId, api)}
+						className="bg-red-500 hover:bg-red-600 text-white rounded-lg p-2 shadow-sm"
+						title="Delete node and all descendants"
+					>
+						<Trash2 size={16} />
+					</button>
+				</div>
+			);
+		};
+
+		const menuDisposable = api.registerMenuItem({
+			id: "mindmap-controls",
+			component: MindmapControls,
+			position: "top-right",
+			order: 50,
+		});
+
 		// NOTE: No longer need to manually register layer component for rendering mindmap elements.
 		// The built-in ElementsLayer automatically renders all registered element types.
 
@@ -188,6 +279,8 @@ export const MindmapPlugin: Plugin = {
 			layerDisposable,
 			dragDisposable,
 			keyboardDisposable,
+			menuDisposable,
+			elementUpdateDisposable,
 		);
 	},
 

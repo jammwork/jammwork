@@ -9,7 +9,7 @@ interface ConnectionHandlesProps {
 
 export const ConnectionHandles: React.FC<ConnectionHandlesProps> = React.memo(
 	({ element, api }) => {
-		const { addConnection, updateNodeHierarchy } = useMindmapStore();
+		const { addConnection } = useMindmapStore();
 
 		const handleSize = 12;
 		const handleOffset = 6;
@@ -61,10 +61,36 @@ export const ConnectionHandles: React.FC<ConnectionHandlesProps> = React.memo(
 			return newNodeId;
 		};
 
-		const handleClick = (side: "left" | "right", e: React.MouseEvent) => {
+		const handleMouseDown = (side: "left" | "right", e: React.MouseEvent) => {
 			e.preventDefault();
 			e.stopPropagation();
-			createNodeOnSide(side);
+
+			let isDragging = false;
+			let dragStartPos = { x: e.clientX, y: e.clientY };
+
+			const handleMouseMove = (moveEvent: MouseEvent) => {
+				const distance = Math.sqrt(
+					Math.pow(moveEvent.clientX - dragStartPos.x, 2) +
+						Math.pow(moveEvent.clientY - dragStartPos.y, 2),
+				);
+
+				if (distance > 10 && !isDragging) {
+					isDragging = true;
+					createNodeOnSide(side);
+				}
+			};
+
+			const handleMouseUp = () => {
+				document.removeEventListener("mousemove", handleMouseMove);
+				document.removeEventListener("mouseup", handleMouseUp);
+
+				if (!isDragging) {
+					createNodeOnSide(side);
+				}
+			};
+
+			document.addEventListener("mousemove", handleMouseMove);
+			document.addEventListener("mouseup", handleMouseUp);
 		};
 
 		const renderHandle = (side: "left" | "right") => {
@@ -96,7 +122,7 @@ export const ConnectionHandles: React.FC<ConnectionHandlesProps> = React.memo(
 						stroke="#ffffff"
 						strokeWidth="2"
 						style={{ cursor: "pointer" }}
-						onClick={(e) => handleClick(side, e)}
+						onMouseDown={(e) => handleMouseDown(side, e)}
 						className="connection-handle"
 					/>
 
