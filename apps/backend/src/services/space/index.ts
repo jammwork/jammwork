@@ -134,12 +134,8 @@ export class SpaceService {
 			throw new Error("Space name is required");
 		}
 
-		if (
-			!request.pluginIds ||
-			!Array.isArray(request.pluginIds) ||
-			request.pluginIds.length === 0
-		) {
-			throw new Error("At least one plugin ID is required");
+		if (!request.pluginIds || !Array.isArray(request.pluginIds)) {
+			throw new Error("Plugin IDs must be an array");
 		}
 
 		if (!request.createdBy || request.createdBy.trim().length === 0) {
@@ -167,11 +163,8 @@ export class SpaceService {
 			throw new Error("Space description must be less than 500 characters");
 		}
 
-		if (
-			updates.pluginIds !== undefined &&
-			(!Array.isArray(updates.pluginIds) || updates.pluginIds.length === 0)
-		) {
-			throw new Error("Plugin IDs must be a non-empty array");
+		if (updates.pluginIds !== undefined && !Array.isArray(updates.pluginIds)) {
+			throw new Error("Plugin IDs must be an array");
 		}
 	}
 }

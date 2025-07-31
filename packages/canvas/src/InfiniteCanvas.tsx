@@ -16,6 +16,7 @@ import { useCanvasStore } from "./store";
 
 interface InfiniteCanvasProps {
 	plugins?: Plugin[];
+	availablePlugins?: Plugin[];
 	accentColor?: string;
 	backendUrl: string;
 	userId: string;
@@ -25,6 +26,7 @@ interface InfiniteCanvasProps {
 
 export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 	plugins = [],
+	availablePlugins = [],
 	accentColor = "#3b82f6",
 	backendUrl,
 	userId,
@@ -157,6 +159,10 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 				pluginsLoaded={pluginsLoaded}
 				awareness={yjsSync.awareness}
 				currentUserId={userId}
+				backendUrl={backendUrl}
+				spaceId={spaceId}
+				plugins={plugins}
+				availablePlugins={availablePlugins}
 			/>
 		</div>
 	);

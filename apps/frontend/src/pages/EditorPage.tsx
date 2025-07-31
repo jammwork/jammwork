@@ -101,6 +101,7 @@ function EditorPage() {
 				spaceId={spaceId}
 				accentColor={color}
 				plugins={getEnabledPlugins()}
+				availablePlugins={plugins}
 			/>
 		</div>
 	);

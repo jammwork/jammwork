@@ -13,6 +13,7 @@ export * from "./components/ui/label";
 export * from "./components/ui/menubar";
 export * from "./components/ui/separator";
 export * from "./components/ui/sonner";
+export * from "./components/ui/switch";
 export * from "./components/ui/tabs";
 export * from "./components/ui/textarea";
 export * from "./lib/utils";
