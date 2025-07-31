@@ -150,37 +150,6 @@ export const MindmapPlugin: Plugin = {
 			},
 		};
 
-		// Listen for element updates to trigger reorganization
-		const elementUpdateListener = (elementId: string) => {
-			// Check if the updated element is a mindmap node
-			const elements = api.getCanvasState().elements;
-			const element = Array.from(elements.values()).find(
-				(el) => el.id === elementId,
-			);
-
-			if (element?.type === "mindmap") {
-				console.log(
-					"🔄 Mindmap element updated, triggering reorganization:",
-					elementId,
-				);
-
-				const store = useMindmapStore.getState();
-				if (!store.isDragging) {
-					// Use requestAnimationFrame for smooth updates
-					requestAnimationFrame(() => {
-						const hierarchy = store.nodeHierarchy.get(elementId);
-						if (hierarchy?.parentId) {
-							// Reorganize the parent's subtree
-							store.reorganizeSubtree(hierarchy.parentId, api);
-						} else {
-							// If it's a root node, reorganize the entire mindmap
-							store.reorganizeEntireMindmap(api);
-						}
-					});
-				}
-			}
-		};
-
 		// Register element type
 		const elementDisposable = api.registerElementType("mindmap", {
 			render: (element) => {
