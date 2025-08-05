@@ -175,6 +175,9 @@ importers:
       '@jammwork/plugin-screenshare':
         specifier: workspace:*
         version: link:../../packages/plugins/screenshare
+      '@jammwork/plugin-timer':
+        specifier: workspace:*
+        version: link:../../packages/plugins/timer
       '@jammwork/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -275,6 +278,21 @@ importers:
       peerjs:
         specifier: ^1.5.5
         version: 1.5.5
+      zustand:
+        specifier: ^5.0.1
+        version: 5.0.6(@types/react@19.0.0)(react@19.0.0)(use-sync-external-store@1.5.0(react@19.0.0))
+
+  packages/plugins/timer:
+    dependencies:
+      '@jammwork/api':
+        specifier: workspace:*
+        version: link:../../api
+      '@jammwork/ui':
+        specifier: workspace:*
+        version: link:../../ui
+      lucide-react:
+        specifier: ^0.525.0
+        version: 0.525.0(react@19.0.0)
       zustand:
         specifier: ^5.0.1
         version: 5.0.6(@types/react@19.0.0)(react@19.0.0)(use-sync-external-store@1.5.0(react@19.0.0))

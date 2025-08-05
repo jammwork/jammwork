@@ -7,6 +7,7 @@ import { PluginAPIImpl } from "../PluginImpl";
 import { PluginManager } from "../PluginManager";
 import { DrawingPlugin } from "../plugins/drawing";
 import { ShapesPlugin } from "../plugins/shapes";
+import { useCanvasStore } from "../store";
 
 interface UsePluginSystemProps {
 	plugins?: Plugin[];
@@ -81,6 +82,7 @@ export const usePluginSystem = ({
 		const elementsMap = mainDocument.getMap("elements");
 		const selectionArray = mainDocument.getArray("selection");
 		const viewportMap = mainDocument.getMap("viewport");
+		const pinnedElementsMap = mainDocument.getMap("pinnedElements");
 
 		// Flag to prevent infinite loops when applying remote changes
 		let isApplyingRemoteChanges = false;
@@ -172,13 +174,52 @@ export const usePluginSystem = ({
 			return;
 		};
 
+		const handlePinnedElementsChange = () => {
+			if (isApplyingRemoteChanges) {
+				return;
+			}
+
+			const remotePinnedElements = pinnedElementsMap.toJSON() as Record<
+				string,
+				// biome-ignore lint/suspicious/noExplicitAny: we don't know the type of the pinned elements
+				any
+			>;
+
+			isApplyingRemoteChanges = true;
+
+			try {
+				// Update the local store with remote pinned elements
+				useCanvasStore.setState((state) => {
+					const newPinnedElements = new Map();
+
+					// Add all remote pinned elements
+					for (const [id, pinnedElement] of Object.entries(
+						remotePinnedElements,
+					)) {
+						newPinnedElements.set(id, pinnedElement);
+					}
+
+					return {
+						pinningState: {
+							...state.pinningState,
+							pinnedElements: newPinnedElements,
+						},
+					};
+				});
+			} finally {
+				isApplyingRemoteChanges = false;
+			}
+		};
+
 		elementsMap.observe(handleElementsChange);
 		selectionArray.observe(handleSelectionChange);
+		pinnedElementsMap.observe(handlePinnedElementsChange);
 
 		return () => {
 			disposables.forEach((d) => d.dispose());
 			elementsMap.unobserve(handleElementsChange);
 			selectionArray.unobserve(handleSelectionChange);
+			pinnedElementsMap.unobserve(handlePinnedElementsChange);
 		};
 	}, [yjsDocumentManager, mainDocument, pluginSystem.api]);
 

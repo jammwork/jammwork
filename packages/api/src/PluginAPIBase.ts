@@ -222,6 +222,16 @@ export abstract class PluginAPIBase implements PluginAPI {
 	abstract deselectElement(id: string): void;
 	abstract clearSelection(): void;
 
+	// Element pinning
+	abstract pinElement(
+		elementId: string,
+		screenPosition: { x: number; y: number },
+	): void;
+	abstract unpinElement(elementId: string): void;
+	abstract isPinned(elementId: string): boolean;
+	abstract getPinnedElements(): string[];
+	abstract updatePinnedElement(elementId: string, element: Element): void;
+
 	// Yjs synchronization
 	abstract getYjsDocumentManager(): YjsDocumentManager;
 	abstract getAwareness(): Awareness;

@@ -152,6 +152,13 @@ export interface PluginAPI {
 	deselectElement(id: string): void;
 	clearSelection(): void;
 
+	// Element pinning
+	pinElement(elementId: string, screenPosition: { x: number; y: number }): void;
+	unpinElement(elementId: string): void;
+	isPinned(elementId: string): boolean;
+	getPinnedElements(): string[];
+	updatePinnedElement(elementId: string, element: Element): void;
+
 	// Yjs synchronization
 	getYjsDocumentManager(): YjsDocumentManager;
 	getAwareness(): Awareness; // Awareness type not available in API package

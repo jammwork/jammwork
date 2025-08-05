@@ -119,6 +119,13 @@ export class PluginManager {
 			setToolHighlight: this.api.setToolHighlight.bind(this.api),
 			isToolHighlighted: this.api.isToolHighlighted.bind(this.api),
 
+			// Element pinning
+			pinElement: this.api.pinElement.bind(this.api),
+			unpinElement: this.api.unpinElement.bind(this.api),
+			isPinned: this.api.isPinned.bind(this.api),
+			getPinnedElements: this.api.getPinnedElements.bind(this.api),
+			updatePinnedElement: this.api.updatePinnedElement.bind(this.api),
+
 			// Yjs synchronization
 			getYjsDocumentManager: this.api.getYjsDocumentManager.bind(this.api),
 			getAwareness: this.api.getAwareness.bind(this.api),

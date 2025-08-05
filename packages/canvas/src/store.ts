@@ -54,6 +54,17 @@ export interface SelectionState {
 	} | null;
 }
 
+export interface PinnedElement {
+	id: string;
+	element: Element;
+	screenX: number;
+	screenY: number;
+}
+
+export interface PinningState {
+	pinnedElements: Map<string, PinnedElement>; // elementId -> pinned element data
+}
+
 export interface HistoryState {
 	elements: Map<string, Element>;
 	selectedElements: string[];
@@ -72,6 +83,7 @@ interface CanvasState {
 	toolState: ToolState;
 	selectionState: SelectionState;
 	contextMenuState: ContextMenuState;
+	pinningState: PinningState;
 	elements: Map<string, Element>;
 	dimensions: {
 		width: number;
@@ -135,6 +147,16 @@ interface CanvasActions {
 	) => void;
 	closeContextMenu: () => void;
 
+	// Element pinning
+	pinElement: (
+		elementId: string,
+		screenPosition: { x: number; y: number },
+	) => void;
+	unpinElement: (elementId: string) => void;
+	isPinned: (elementId: string) => boolean;
+	getPinnedElements: () => PinnedElement[];
+	updatePinnedElement: (elementId: string, element: Element) => void;
+
 	// History management
 	saveToHistory: () => void;
 	undo: () => void;
@@ -175,6 +197,9 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 		isOpen: false,
 		position: { x: 0, y: 0 },
 		targetElementId: null,
+	},
+	pinningState: {
+		pinnedElements: new Map(),
 	},
 	elements: new Map(),
 	history: {
@@ -1021,4 +1046,127 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 		set(() => ({
 			yjsDocument: doc,
 		})),
+
+	// Element pinning implementation
+	pinElement: (elementId, screenPosition) =>
+		set((state) => {
+			const element = state.elements.get(elementId);
+			if (!element) return state;
+
+			const pinnedElement = {
+				id: elementId,
+				element: { ...element },
+				screenX: screenPosition.x,
+				screenY: screenPosition.y,
+			};
+
+			const newPinnedElements = new Map(state.pinningState.pinnedElements);
+			newPinnedElements.set(elementId, pinnedElement);
+
+			// Remove element from main canvas
+			const newElements = new Map(state.elements);
+			newElements.delete(elementId);
+
+			// Sync with Yjs
+			if (state.yjsDocument) {
+				const pinnedElementsMap = state.yjsDocument.getMap("pinnedElements");
+				const doc = state.yjsDocument;
+				doc.transact(() => {
+					pinnedElementsMap.set(elementId, pinnedElement);
+					// Also remove from elements map
+					const elementsMap = doc.getMap("elements");
+					elementsMap.delete(elementId);
+				});
+			}
+
+			return {
+				elements: newElements,
+				pinningState: {
+					...state.pinningState,
+					pinnedElements: newPinnedElements,
+				},
+			};
+		}),
+
+	unpinElement: (elementId) =>
+		set((state) => {
+			const pinnedElement = state.pinningState.pinnedElements.get(elementId);
+			if (!pinnedElement) return state;
+
+			const newPinnedElements = new Map(state.pinningState.pinnedElements);
+			newPinnedElements.delete(elementId);
+
+			// Convert screen position back to canvas coordinates
+			const { viewBox } = state;
+			const canvasX = viewBox.x + pinnedElement.screenX / viewBox.zoom;
+			const canvasY = viewBox.y + pinnedElement.screenY / viewBox.zoom;
+
+			const restoredElement = {
+				...pinnedElement.element,
+				x: canvasX,
+				y: canvasY,
+			};
+
+			// Add element back to main canvas at the converted position
+			const newElements = new Map(state.elements);
+			newElements.set(elementId, restoredElement);
+
+			// Sync with Yjs
+			if (state.yjsDocument) {
+				const pinnedElementsMap = state.yjsDocument.getMap("pinnedElements");
+				const elementsMap = state.yjsDocument.getMap("elements");
+				const doc = state.yjsDocument;
+				doc.transact(() => {
+					pinnedElementsMap.delete(elementId);
+					// Add back to elements map
+					elementsMap.set(elementId, restoredElement);
+				});
+			}
+
+			return {
+				elements: newElements,
+				pinningState: {
+					...state.pinningState,
+					pinnedElements: newPinnedElements,
+				},
+			};
+		}),
+
+	isPinned: (elementId) => {
+		return get().pinningState.pinnedElements.has(elementId);
+	},
+
+	getPinnedElements: () => {
+		return Array.from(get().pinningState.pinnedElements.values());
+	},
+
+	updatePinnedElement: (elementId, element) =>
+		set((state) => {
+			const pinnedElement = state.pinningState.pinnedElements.get(elementId);
+			if (!pinnedElement) return state;
+
+			const updatedPinnedElement = {
+				...pinnedElement,
+				element: { ...element },
+			};
+
+			const newPinnedElements = new Map(state.pinningState.pinnedElements);
+			newPinnedElements.set(elementId, updatedPinnedElement);
+
+			// Sync with Yjs
+			if (state.yjsDocument) {
+				const pinnedElementsMap = state.yjsDocument.getMap("pinnedElements");
+				const doc = state.yjsDocument;
+				doc.transact(() => {
+					pinnedElementsMap.set(elementId, updatedPinnedElement);
+				});
+			}
+
+			return {
+				pinningState: {
+					...state.pinningState,
+					pinnedElements: newPinnedElements,
+				},
+			};
+		}),
 }));

@@ -18,6 +18,9 @@
 			"path": "../../packages/plugins/mindmap"
 		},
 		{
+			"path": "../../packages/plugins/timer"
+		},
+		{
 			"path": "../../packages/canvas"
 		},
 		{

@@ -416,6 +416,35 @@ export class PluginAPIImpl implements PluginAPI {
 		return this.spaceId;
 	}
 
+	// Element pinning
+	pinElement(
+		elementId: string,
+		screenPosition: { x: number; y: number },
+	): void {
+		const { pinElement } = useCanvasStore.getState();
+		pinElement(elementId, screenPosition);
+	}
+
+	unpinElement(elementId: string): void {
+		const { unpinElement } = useCanvasStore.getState();
+		unpinElement(elementId);
+	}
+
+	isPinned(elementId: string): boolean {
+		const { isPinned } = useCanvasStore.getState();
+		return isPinned(elementId);
+	}
+
+	getPinnedElements(): string[] {
+		const { getPinnedElements } = useCanvasStore.getState();
+		return getPinnedElements().map((p) => p.id);
+	}
+
+	updatePinnedElement(elementId: string, element: Element): void {
+		const { updatePinnedElement } = useCanvasStore.getState();
+		updatePinnedElement(elementId, element);
+	}
+
 	// Yjs synchronization
 	getYjsDocumentManager(): YjsDocumentManager {
 		if (!this.yjsDocumentManager) {

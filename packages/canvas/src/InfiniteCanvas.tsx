@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { CanvasContextMenu } from "./components/CanvasContextMenu";
 import { CanvasOverlay } from "./components/CanvasOverlay";
 import { CanvasRenderer } from "./components/CanvasRenderer";
+import { PinnedElementsLayer } from "./components/PinnedElementsLayer";
 import { UserCursorsLayer } from "./components/UserCursorsLayer";
 import { useCanvasEvents } from "./hooks/useCanvasEvents";
 import { useDocumentManager } from "./hooks/useDocumentManager";
@@ -164,6 +165,7 @@ export const InfiniteCanvas: React.FC<InfiniteCanvasProps> = ({
 				plugins={plugins}
 				availablePlugins={availablePlugins}
 			/>
+			<PinnedElementsLayer api={api} />
 		</div>
 	);
 };

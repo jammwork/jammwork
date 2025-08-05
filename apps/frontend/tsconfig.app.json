@@ -41,6 +41,9 @@
 			"path": "../../packages/plugins/mindmap/tsconfig.lib.json"
 		},
 		{
+			"path": "../../packages/plugins/timer/tsconfig.lib.json"
+		},
+		{
 			"path": "../../packages/canvas/tsconfig.lib.json"
 		}
 	]
